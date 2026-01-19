@@ -4050,23 +4050,31 @@ window.solicitarImportarJSON = function() {
 
 /* ========== ESTILOS DE IMPRESIÓN MEJORADOS ========== */
 @media print {
-    /* Ocultar todo excepto el área de impresión */
-    body * {
-        visibility: hidden !important;
+    /* Ocultar elementos específicos del UI */
+    header, nav, footer, .mobile-nav-panel, #mobileMenuBtn {
+        display: none !important;
     }
-    
-    /* Mostrar solo el área de impresión */
-    #area-impresion-etiquetas,
-    #area-impresion-etiquetas * {
-        visibility: visible !important;
+
+    /* Ocultar todas las secciones excepto el área de impresión */
+    section {
+        display: none !important;
     }
-    
+
+    /* Resetear el body para impresión */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    /* Mostrar y posicionar el área de impresión */
     #area-impresion-etiquetas {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
+        display: block !important;
+        position: relative !important;
         width: 100% !important;
+        margin: 0 !important;
         padding: 10mm !important;
+        background: white !important;
     }
     
     /* Estilos de la etiqueta para impresión */
@@ -29139,12 +29147,13 @@ function limpiarFormularioUsuario() {
 }
 
 // Cargar usuarios cuando se muestra la sección
+// Guardar referencia a la función showSection original antes de sobrescribirla
 const originalShowSection = window.showSection;
 window.showSection = function(section) {
     if (typeof originalShowSection === 'function') {
         originalShowSection(section);
     }
-    
+
     if (section === 'usuarios') {
         cargarUsuariosFirebase();
     }
