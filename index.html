@@ -538,6 +538,233 @@
         .table-container { animation: fadeInUp 0.6s ease-out 0.1s both; }
         .resumen-section { animation: fadeInUp 0.6s ease-out 0.2s both; }
 
+        /* --- Barra de Mes Activo --- */
+        .mes-bar {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 14px 28px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-gold);
+            box-shadow: var(--shadow-gold);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .mes-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .mes-badge {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2em;
+            color: var(--gold-light);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mes-estado {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.76em;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .mes-estado.saved   { background: rgba(46,204,113,0.15);  color: var(--accent-emerald);   border: 1px solid rgba(46,204,113,0.3); }
+        .mes-estado.synced  { background: rgba(52,152,219,0.15);  color: var(--accent-sapphire);  border: 1px solid rgba(52,152,219,0.3); }
+        .mes-estado.syncing { background: rgba(212,168,83,0.15);  color: var(--gold);             border: 1px solid rgba(212,168,83,0.3); }
+        .mes-estado.error   { background: rgba(231,76,60,0.15);   color: var(--accent-ruby);      border: 1px solid rgba(231,76,60,0.3); }
+        .mes-estado.local   { background: rgba(155,89,182,0.15);  color: var(--accent-amethyst);  border: 1px solid rgba(155,89,182,0.3); }
+
+        /* --- Modal Overlay --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-heavy), var(--shadow-gold);
+            width: 92%;
+            max-width: 660px;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .modal-header {
+            padding: 22px 28px 18px;
+            border-bottom: 1px solid var(--border-gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+        }
+
+        .modal-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-light);
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3em;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .modal-close:hover { color: var(--accent-ruby); background: rgba(231,76,60,0.1); }
+
+        .modal-body {
+            padding: 22px 28px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        .modal-body::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+
+        .config-url {
+            padding: 14px 16px;
+            background: rgba(52,152,219,0.06);
+            border: 1px solid rgba(52,152,219,0.2);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+        }
+
+        .config-url label {
+            display: block;
+            color: var(--accent-sapphire);
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .config-url input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid rgba(52,152,219,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            color: var(--text-primary);
+            font-size: 0.84em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .config-url input:focus { outline: none; border-color: var(--accent-sapphire); }
+
+        .nuevo-mes-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .nuevo-mes-form label {
+            color: var(--text-secondary);
+            font-size: 0.84em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .nuevo-mes-form input[type="month"] {
+            flex: 1;
+            padding: 9px 12px;
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-primary);
+            font-size: 0.88em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nuevo-mes-form input[type="month"]:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,168,83,0.1); }
+
+        .meses-lista-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.78em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .mes-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .mes-item:hover { border-color: var(--border-gold); background: rgba(212,168,83,0.06); transform: translateX(3px); }
+        .mes-item.active { border-color: var(--gold); background: rgba(212,168,83,0.09); }
+
+        .mes-item-nombre {
+            font-weight: 600;
+            color: var(--gold-light);
+            font-size: 0.95em;
+            margin-bottom: 3px;
+        }
+
+        .mes-item-meta { font-size: 0.76em; color: var(--text-muted); }
+
+        .btn-sm { padding: 6px 12px; font-size: 0.8em; }
+
+        .meses-loading { text-align: center; color: var(--text-muted); padding: 28px; font-size: 0.88em; }
+
         /* --- Responsive --- */
         @media (max-width: 768px) {
             .header {
@@ -570,6 +797,25 @@
                 </button>
                 <button class="btn btn-danger" onclick="limpiarTodo()">
                     <i class="fas fa-trash"></i> Limpiar Todo
+                </button>
+            </div>
+        </div>
+
+        <!-- Barra de mes activo -->
+        <div class="mes-bar">
+            <div class="mes-info">
+                <span class="mes-badge">
+                    <i class="fas fa-calendar-alt" style="color: var(--gold);"></i>
+                    <span id="mesActualLabel">Cargando...</span>
+                </span>
+                <span class="mes-estado local" id="mesEstado">💾 Local</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="abrirPanelMeses()">
+                    <i class="fas fa-folder-open"></i> Gestionar Meses
+                </button>
+                <button class="btn btn-success" onclick="guardarEnServidor()" id="btnGuardarServidor" style="display:none;">
+                    <i class="fas fa-cloud-upload-alt"></i> Guardar en Sheets
                 </button>
             </div>
         </div>
@@ -678,7 +924,298 @@
         </div>
     </div>
 
+    <!-- Modal: Gestión de Meses -->
+    <div class="modal-overlay" id="modalMeses">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-alt"></i> Gestión de Meses</h2>
+                <button class="modal-close" onclick="cerrarPanelMeses()" title="Cerrar"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- URL Apps Script -->
+                <div class="config-url">
+                    <label><i class="fas fa-link"></i>&nbsp; URL de Google Apps Script <span style="font-weight:400; color: var(--text-muted);">(opcional — sincroniza con Google Sheets)</span></label>
+                    <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="guardarUrlConfig()">
+                </div>
+
+                <!-- Abrir / crear mes -->
+                <div class="nuevo-mes-form">
+                    <label><i class="fas fa-folder-open"></i> Abrir mes:</label>
+                    <input type="month" id="inputNuevoMes">
+                    <button class="btn btn-success btn-sm" onclick="abrirMes()">
+                        <i class="fas fa-check"></i> Abrir
+                    </button>
+                </div>
+
+                <!-- Lista de meses -->
+                <div class="meses-lista-header">
+                    <span><i class="fas fa-history"></i>&nbsp; Meses guardados</span>
+                    <button class="btn btn-primary btn-sm" onclick="actualizarListaMeses()">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+                <div id="mesesLista">
+                    <div class="meses-loading"><i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script>
+        // ============================================================
+        // CONFIGURACIÓN Y ESTADO DE MESES
+        // ============================================================
+        let APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || '';
+
+        function obtenerMesActual() {
+            const hoy = new Date();
+            return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        let mesActual = localStorage.getItem('mesActualSeleccionado') || obtenerMesActual();
+
+        const NOMBRES_MES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                             'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        function formatearMes(mesKey) {
+            const [anio, mes] = mesKey.split('-');
+            return `${NOMBRES_MES[parseInt(mes, 10) - 1]} ${anio}`;
+        }
+
+        function actualizarLabelMes() {
+            const el = document.getElementById('mesActualLabel');
+            if (el) el.textContent = formatearMes(mesActual);
+            const inp = document.getElementById('inputNuevoMes');
+            if (inp) inp.value = mesActual;
+        }
+
+        function setEstado(estado, texto) {
+            const el = document.getElementById('mesEstado');
+            if (!el) return;
+            const defaults = {
+                saved:   '💾 Guardado local',
+                synced:  '☁ Sincronizado',
+                syncing: '⟳ Sincronizando...',
+                error:   '✗ Error',
+                local:   '💾 Local'
+            };
+            el.className = `mes-estado ${estado}`;
+            el.textContent = texto || defaults[estado] || estado;
+        }
+
+        function guardarUrlConfig() {
+            APPS_SCRIPT_URL = (document.getElementById('appsScriptUrl').value || '').trim();
+            localStorage.setItem('appsScriptUrl', APPS_SCRIPT_URL);
+            const btn = document.getElementById('btnGuardarServidor');
+            if (btn) btn.style.display = APPS_SCRIPT_URL ? 'inline-flex' : 'none';
+        }
+
+        // ============================================================
+        // PANEL DE MESES - Abrir / Cerrar
+        // ============================================================
+        function abrirPanelMeses() {
+            document.getElementById('modalMeses').classList.add('active');
+            const urlInput = document.getElementById('appsScriptUrl');
+            if (urlInput) urlInput.value = APPS_SCRIPT_URL;
+            const inp = document.getElementById('inputNuevoMes');
+            if (inp) inp.value = mesActual;
+            actualizarListaMeses();
+        }
+
+        function cerrarPanelMeses() {
+            document.getElementById('modalMeses').classList.remove('active');
+        }
+
+        // Cerrar modal al hacer clic fuera del box
+        document.addEventListener('click', function(e) {
+            const overlay = document.getElementById('modalMeses');
+            if (e.target === overlay) cerrarPanelMeses();
+        });
+
+        // ============================================================
+        // LISTA DE MESES (local + servidor)
+        // ============================================================
+        function getMesesLocales() {
+            const meses = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && /^consumos_\d{4}-\d{2}$/.test(key)) {
+                    const mesKey = key.replace('consumos_', '');
+                    try {
+                        const datos = JSON.parse(localStorage.getItem(key)) || [];
+                        meses.push({ mes: mesKey, filas: datos.length, origen: 'local' });
+                    } catch(e) {
+                        meses.push({ mes: mesKey, filas: 0, origen: 'local' });
+                    }
+                }
+            }
+            return meses.sort((a, b) => b.mes.localeCompare(a.mes));
+        }
+
+        async function actualizarListaMeses() {
+            const lista = document.getElementById('mesesLista');
+            if (!lista) return;
+            lista.innerHTML = '<div class="meses-loading"><i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</div>';
+
+            const mesesLocales = getMesesLocales();
+            let mesesServidor = [];
+
+            if (APPS_SCRIPT_URL) {
+                try {
+                    const resp = await fetch(`${APPS_SCRIPT_URL}?action=listarMeses`);
+                    const data = await resp.json();
+                    if (data.success) mesesServidor = data.meses;
+                } catch (e) { /* servidor no disponible */ }
+            }
+
+            // Unificar: servidor tiene prioridad para marcar origen
+            const mapa = new Map();
+            mesesLocales.forEach(m => mapa.set(m.mes, { ...m }));
+            mesesServidor.forEach(m => {
+                const local = mapa.get(m.mes);
+                mapa.set(m.mes, { ...m, origen: local ? 'both' : 'server' });
+            });
+
+            // Agregar mes actual si no existe aún
+            if (!mapa.has(mesActual)) {
+                mapa.set(mesActual, { mes: mesActual, filas: 0, origen: 'local' });
+            }
+
+            const arr = Array.from(mapa.values()).sort((a, b) => b.mes.localeCompare(a.mes));
+
+            if (arr.length === 0) {
+                lista.innerHTML = '<div class="meses-loading">No hay meses guardados aún.</div>';
+                return;
+            }
+
+            lista.innerHTML = arr.map(m => {
+                const esActual = m.mes === mesActual;
+                const origenHTML = m.origen === 'server' || m.origen === 'both'
+                    ? `<span style="color:#3498db;">☁ Sheets</span>`
+                    : `<span style="color:#9b59b6;">💾 Local</span>`;
+                const activoTag = esActual ? ' <span style="color:var(--gold);font-size:0.8em;">← activo</span>' : '';
+                return `
+                    <div class="mes-item${esActual ? ' active' : ''}" onclick="seleccionarMes('${m.mes}')">
+                        <div>
+                            <div class="mes-item-nombre">${formatearMes(m.mes)}${activoTag}</div>
+                            <div class="mes-item-meta">${m.filas || 0} registros &nbsp;|&nbsp; ${origenHTML}</div>
+                        </div>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); confirmarEliminarMes('${m.mes}')" title="Eliminar mes local">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function seleccionarMes(mes) {
+            if (mes === mesActual) { cerrarPanelMeses(); return; }
+            recopilarYGuardarLocal(); // guardar estado actual antes de cambiar
+            mesActual = mes;
+            localStorage.setItem('mesActualSeleccionado', mesActual);
+            actualizarLabelMes();
+            cerrarPanelMeses();
+            await cargarDatos();
+        }
+
+        function abrirMes() {
+            const inp = document.getElementById('inputNuevoMes');
+            const mes = inp ? inp.value : '';
+            if (!mes) { alert('Selecciona un mes primero.'); return; }
+            seleccionarMes(mes);
+        }
+
+        function confirmarEliminarMes(mes) {
+            if (!confirm(`¿Eliminar los datos locales de ${formatearMes(mes)}? (No afecta Google Sheets)`)) return;
+            localStorage.removeItem(`consumos_${mes}`);
+            if (mes === mesActual) {
+                document.getElementById('tablaBody').innerHTML = '';
+                filaContador = 1;
+                calcularTotales();
+                setEstado('saved');
+            }
+            actualizarListaMeses();
+        }
+
+        // ============================================================
+        // INTEGRACIÓN APPS SCRIPT
+        // ============================================================
+        async function guardarEnServidor() {
+            if (!APPS_SCRIPT_URL) {
+                alert('Configura primero la URL de Apps Script en "Gestionar Meses".');
+                return;
+            }
+            setEstado('syncing');
+            const datos = recopilarDatos();
+            try {
+                const resp = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'guardar', mes: mesActual, datos })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    setEstado('synced', `☁ Sincronizado (${data.filas} filas)`);
+                } else {
+                    setEstado('error', `✗ ${data.error || 'Error del servidor'}`);
+                }
+            } catch (e) {
+                setEstado('error', '✗ Sin conexión al servidor');
+                console.error('Error guardarEnServidor:', e);
+            }
+        }
+
+        async function cargarDesdeServidor(mes) {
+            if (!APPS_SCRIPT_URL) return null;
+            try {
+                const resp = await fetch(`${APPS_SCRIPT_URL}?action=cargar&mes=${mes}`);
+                const data = await resp.json();
+                if (data.success) return data.datos || [];
+            } catch (e) {
+                console.error('Error cargarDesdeServidor:', e);
+            }
+            return null;
+        }
+
+        // Extrae datos de la tabla como array de objetos
+        function recopilarDatos() {
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+            const datos = [];
+            filas.forEach(fila => {
+                const selectAbrev = fila.cells[4].querySelector('select');
+                const selectPdv   = fila.cells[5].querySelector('select');
+                datos.push({
+                    abreviatura:    selectAbrev ? selectAbrev.value : '',
+                    pdv:            selectPdv   ? selectPdv.value   : '',
+                    nroChk:         fila.cells[6].querySelector('input').value,
+                    importe:        fila.cells[7].querySelector('input').value,
+                    comestibles:    fila.cells[9].querySelector('input').value,
+                    teCafe:         fila.cells[10].querySelector('input').value,
+                    vinos:          fila.cells[12].querySelector('input').value,
+                    gaseosas:       fila.cells[13].querySelector('input').value,
+                    cerveza:        fila.cells[14].querySelector('input').value,
+                    licores:        fila.cells[15].querySelector('input').value,
+                    fecha:          fila.cells[17].querySelector('input').value,
+                    invitadoMotivo: fila.cells[18].querySelector('input').value,
+                    firmante:       fila.cells[19].querySelector('input').value,
+                    observaciones:  fila.cells[21].querySelector('input').value,
+                });
+            });
+            return datos;
+        }
+
+        // Guarda solo en localStorage con clave por mes
+        function recopilarYGuardarLocal() {
+            const datos = recopilarDatos();
+            try {
+                localStorage.setItem(`consumos_${mesActual}`, JSON.stringify(datos));
+            } catch (e) {
+                console.error('Error al guardar local:', e);
+            }
+        }
+
+        // ============================================================
+
         let filaContador = 1;
         const IGV_DIVISOR = 1.28;
 
@@ -731,61 +1268,10 @@
             guardarDatos(); // <--- AÃ‘ADIDO
         }
         
-        // --- FUNCIONES DE PERSISTENCIA (localStorage) ---
+        // --- FUNCIONES DE PERSISTENCIA (localStorage, por mes) ---
         function guardarDatos() {
-            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
-            const datos = [];
-
-            filas.forEach(fila => {
-                // Obtenemos los valores relevantes de la fila
-                const importe = fila.cells[7].querySelector('input').value;
-                const comestibles = fila.cells[9].querySelector('input').value;
-                const teCafe = fila.cells[10].querySelector('input').value;
-                const vinos = fila.cells[12].querySelector('input').value;
-                const gaseosas = fila.cells[13].querySelector('input').value;
-                const cerveza = fila.cells[14].querySelector('input').value;
-                const licores = fila.cells[15].querySelector('input').value;
-                const fecha = fila.cells[17].querySelector('input').value;
-                const invitadoMotivo = fila.cells[18].querySelector('input').value;
-                const firmante = fila.cells[19].querySelector('input').value;
-                const observaciones = fila.cells[21].querySelector('input').value;
-
-                // TambiÃ©n guardamos el valor del Select (Abreviatura)
-                const selectAbrev = fila.cells[4].querySelector('select');
-                const abreviatura = selectAbrev ? selectAbrev.value : "";
-                
-                // Y el Select de Punto de Venta
-                const selectPdv = fila.cells[5].querySelector('select');
-                const pdv = selectPdv ? selectPdv.value : "";
-                
-                // Y el Nro Chk
-                const nroChk = fila.cells[6].querySelector('input').value;
-
-                datos.push({
-                    abreviatura,
-                    pdv,
-                    nroChk,
-                    importe,
-                    comestibles,
-                    teCafe,
-                    vinos,
-                    gaseosas,
-                    cerveza,
-                    licores,
-                    fecha,
-                    invitadoMotivo,
-                    firmante,
-                    observaciones
-                });
-            });
-
-            // Guardar el array de objetos como JSON en localStorage
-            try {
-                localStorage.setItem('consumosMensuales', JSON.stringify(datos));
-                // console.log('Datos guardados exitosamente.'); // Descomentar para debug
-            } catch (e) {
-                console.error('Error al guardar en localStorage: ', e);
-            }
+            recopilarYGuardarLocal();
+            setEstado('saved');
         }
 
 
@@ -901,24 +1387,42 @@
             filaContador++;
         }
 
-        function cargarDatos() {
-            try {
-                const datosJSON = localStorage.getItem('consumosMensuales');
-                if (datosJSON) {
-                    const datos = JSON.parse(datosJSON);
-                    document.getElementById('tablaBody').innerHTML = ''; // Limpiar antes de cargar
-                    filaContador = 1; // Resetear el contador
-                    
-                    datos.forEach(datosFila => {
-                        agregarFila(datosFila); // Reutilizar la funciÃ³n agregarFila
-                    });
+        async function cargarDatos() {
+            actualizarLabelMes();
 
-                    calcularTotales();
-                    // console.log('Datos cargados exitosamente. Total de filas: ' + datos.length); // Descomentar para debug
+            // 1. Intentar cargar desde servidor primero (si hay URL)
+            let datos = null;
+            if (APPS_SCRIPT_URL) {
+                setEstado('syncing', '⟳ Cargando desde Sheets...');
+                datos = await cargarDesdeServidor(mesActual);
+                if (datos !== null) {
+                    setEstado('synced', `☁ Cargado desde Sheets (${datos.length} filas)`);
+                    // Guardar copia local
+                    try { localStorage.setItem(`consumos_${mesActual}`, JSON.stringify(datos)); } catch(e) {}
                 }
-            } catch (e) {
-                console.error('Error al cargar datos de localStorage: ', e);
             }
+
+            // 2. Fallback: cargar desde localStorage
+            if (datos === null) {
+                try {
+                    const json = localStorage.getItem(`consumos_${mesActual}`);
+                    datos = json ? JSON.parse(json) : [];
+                } catch (e) {
+                    console.error('Error al cargar datos locales:', e);
+                    datos = [];
+                }
+                setEstado('saved');
+            }
+
+            // 3. Poblar tabla
+            document.getElementById('tablaBody').innerHTML = '';
+            filaContador = 1;
+            datos.forEach(datosFila => agregarFila(datosFila));
+            calcularTotales();
+
+            // 4. Mostrar/ocultar botón servidor
+            const btn = document.getElementById('btnGuardarServidor');
+            if (btn) btn.style.display = APPS_SCRIPT_URL ? 'inline-flex' : 'none';
         }
 
 
@@ -1269,17 +1773,16 @@
         }
 
         function limpiarTodo() {
-            if (confirm('¿Estás seguro de eliminar todas las filas? Esto borrará también los datos guardados.')) {
+            if (confirm(`¿Eliminar todas las filas de ${formatearMes(mesActual)}? Esto borrará también los datos locales de este mes.`)) {
                 document.getElementById('tablaBody').innerHTML = '';
                 document.getElementById('resumenDinamico').style.display = 'none';
                 document.getElementById('resumenDistribucion').style.display = 'none';
                 document.getElementById('resumenSeccion').style.display = 'none';
                 filaContador = 1;
                 calcularTotales();
-                
-                // BORRAR DATOS GUARDADOS
-                localStorage.removeItem('consumosMensuales');
-                alert('Datos eliminados de la tabla y del almacenamiento.');
+                localStorage.removeItem(`consumos_${mesActual}`);
+                setEstado('saved');
+                alert(`Datos de ${formatearMes(mesActual)} eliminados.`);
             }
         }
         
@@ -1497,7 +2000,7 @@
             const fecha = new Date().toISOString().slice(0,10);
             
             link.setAttribute('href', url);
-            link.setAttribute('download', `Consumos_Mensuales_Completo_${fecha}.xls`); 
+            link.setAttribute('download', `Consumos_${mesActual}_${fecha}.xls`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1507,8 +2010,15 @@
             alert('✅ Excel exportado exitosamente con ' + hojas.length + ' hoja(s)');
         }
 
-        // Llamada inicial para cargar los datos guardados al inicio
-        cargarDatos();
+        // Inicialización al cargar la página
+        (function init() {
+            // Mostrar botón servidor si hay URL configurada
+            if (APPS_SCRIPT_URL) {
+                const btn = document.getElementById('btnGuardarServidor');
+                if (btn) btn.style.display = 'inline-flex';
+            }
+            cargarDatos();
+        })();
 
     </script>
 </body>
