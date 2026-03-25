@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --bg-primary: #0f0f1a;
@@ -934,8 +935,13 @@
             <div class="modal-body">
                 <!-- URL Apps Script -->
                 <div class="config-url">
-                    <label><i class="fas fa-link"></i>&nbsp; URL de Google Apps Script <span style="font-weight:400; color: var(--text-muted);">(opcional — sincroniza con Google Sheets)</span></label>
-                    <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="guardarUrlConfig()">
+                    <label><i class="fas fa-link"></i>&nbsp; URL de Google Apps Script <span style="font-weight:400; color: var(--text-muted);">(sincroniza con Google Sheets)</span></label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="guardarUrlConfig()" style="flex:1;">
+                        <button class="btn btn-primary btn-sm" onclick="probarConexion()" title="Probar conexión">
+                            <i class="fas fa-plug"></i> Probar
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Abrir / crear mes -->
@@ -1147,35 +1153,72 @@
                 alert('Configura primero la URL de Apps Script en "Gestionar Meses".');
                 return;
             }
-            setEstado('syncing');
+            setEstado('syncing', '⟳ Guardando...');
             const datos = recopilarDatos();
             try {
+                // Content-Type: text/plain evita el preflight CORS de Apps Script
                 const resp = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'guardar', mes: mesActual, datos })
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'guardar', mes: mesActual, datos }),
+                    redirect: 'follow'
                 });
-                const data = await resp.json();
+                if (!resp.ok) {
+                    setEstado('error', `✗ HTTP ${resp.status}`);
+                    return;
+                }
+                const text = await resp.text();
+                let data;
+                try { data = JSON.parse(text); } catch(e) {
+                    setEstado('error', '✗ Respuesta inválida del servidor');
+                    console.error('Respuesta no-JSON:', text);
+                    return;
+                }
                 if (data.success) {
-                    setEstado('synced', `☁ Sincronizado (${data.filas} filas)`);
+                    setEstado('synced', `☁ Guardado en Sheets (${data.filas} filas)`);
                 } else {
                     setEstado('error', `✗ ${data.error || 'Error del servidor'}`);
                 }
             } catch (e) {
-                setEstado('error', '✗ Sin conexión al servidor');
-                console.error('Error guardarEnServidor:', e);
+                setEstado('error', '✗ Error de red (ver consola)');
+                console.error('guardarEnServidor error:', e.name, e.message);
             }
         }
 
         async function cargarDesdeServidor(mes) {
             if (!APPS_SCRIPT_URL) return null;
             try {
-                const resp = await fetch(`${APPS_SCRIPT_URL}?action=cargar&mes=${mes}`);
-                const data = await resp.json();
+                const resp = await fetch(
+                    `${APPS_SCRIPT_URL}?action=cargar&mes=${encodeURIComponent(mes)}`,
+                    { redirect: 'follow' }
+                );
+                if (!resp.ok) { console.warn('cargarDesdeServidor HTTP', resp.status); return null; }
+                const text = await resp.text();
+                const data = JSON.parse(text);
                 if (data.success) return data.datos || [];
             } catch (e) {
-                console.error('Error cargarDesdeServidor:', e);
+                console.warn('cargarDesdeServidor error:', e.message);
             }
             return null;
+        }
+
+        async function probarConexion() {
+            setEstado('syncing', '⟳ Probando...');
+            try {
+                const resp = await fetch(
+                    `${APPS_SCRIPT_URL}?action=listarMeses`,
+                    { redirect: 'follow' }
+                );
+                const data = await resp.json();
+                if (data.success !== undefined) {
+                    setEstado('synced', `☁ Conectado (${data.meses ? data.meses.length : 0} meses)`);
+                    return true;
+                }
+            } catch(e) {
+                console.error('probarConexion:', e.message);
+            }
+            setEstado('error', '✗ Sin conexión');
+            return false;
         }
 
         // Extrae datos de la tabla como array de objetos
@@ -1787,228 +1830,138 @@
             }
         }
         
-        // --- FUNCIÓN CORREGIDA PARA EXPORTAR A EXCEL ---
+        // --- EXPORTAR A .xlsx CON SheetJS ---
         function exportarExcel() {
-            // Estilos CSS optimizados para Excel
-            const style = `
-                <style>
-                    body { font-family: Calibri, sans-serif; }
-                    table { 
-                        border-collapse: collapse; 
-                        width: 100%; 
-                        margin-bottom: 20px;
-                        border: 1px solid #000000;
-                    }
-                    
-                    /* Estilos generales para TH */
-                    thead th {
-                        font-weight: bold;
-                        text-align: center;
-                        color: #FFFFFF; 
-                        white-space: normal; 
-                    }
+            const wb = XLSX.utils.book_new();
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
 
-                    /* Celdas del cuerpo, etc. */
-                    tbody td {
-                        border: 1px solid #cccccc;
-                        padding: 8px;
-                        font-size: 10pt;
-                        text-align: center;
-                    }
-                    
-                    tbody tr:nth-child(even) {
-                        background-color: #f8f9ff;
-                    }
-                    
-                    .totals-row {
-                        background-color: #ffe0b2;
-                        font-weight: bold;
-                        font-size: 11pt;
-                        border: 3px solid #ff9800;
-                    }
-
-                    /* ---------------------------------------------------- */
-                    /* ESTILOS CLAVE PARA LAS TABLAS DE RESUMEN (HOJA 2) */
-                    /* ---------------------------------------------------- */
-
-                    /* Cabecera de la Tabla 1 (Resumen Categoría) - AZUL OSCURO */
-                       #tablaResumen thead th {
-                    background-color: #008000; /* Verde Oscuro */
-                    color: #FFFFFF;
-                    font-weight: bold;
-                    font-size: 11pt;
-                    padding: 12px;
-                    border: 2px solid #005000;
-                }
-                    
-                    /* Cabecera de la Tabla 2 (Matriz Distribución) - PÚRPURA */
-                    #tablaDistribucion thead th {
-                        background-color: #6a1b9a; 
-                        color: #FFFFFF; 
-                        font-size: 11pt;
-                        padding: 12px;
-                        border: 2px solid #4a148c;
-                    }
-                    
-                    /* Fila de totales Tabla 1 (Naranja) */
-                    #tablaResumen tfoot tr {
-                        background-color: #ffe0b2;
-                        font-weight: bold;
-                        font-size: 12pt;
-                        border-top: 4px double #e65100;
-                    }
-                    
-                    /* Fila de totales Tabla 2 (Rosa) */
-                    #tablaDistribucion tfoot tr {
-                        background-color: #fce4ec; 
-                        font-weight: bold;
-                        font-size: 12pt;
-                        border-top: 4px double #880e4f;
-                    }
-                    
-                    /* Títulos internos de Hoja 2 (que no deben fusionarse en una celda) */
-                    .sub-report-title {
-                        color: #1e3c72; 
-                        font-size: 14pt; 
-                        padding: 10px; 
-                        background-color: #e6f7ff; 
-                        border-left: 5px solid #0288d1; 
-                        margin-top: 20px; 
-                        margin-bottom: 10px;
-                        font-weight: bold;
-                    }
-                    
-                    .page-break {
-                        page-break-before: always;
-                    }
-                </style>
-            `;
-
-            // 1. Preparar tabla principal limpia (sin botones)
-            const tablaPrincipal = document.getElementById('tablaConsumos').cloneNode(true);
-            tablaPrincipal.querySelectorAll('button, select').forEach(el => {
-                if (el.tagName === 'SELECT') {
-                    const value = el.options[el.selectedIndex].text;
-                    el.outerHTML = value;
-                } else {
-                    el.remove();
-                }
-            });
-            
-            // Reemplazar inputs por sus valores
-            tablaPrincipal.querySelectorAll('input').forEach(input => {
-                const value = input.value || '';
-                input.outerHTML = value;
-            });
-
-            // 2. Aplicar estilos en lÃ­nea en la cabecera principal (Hoja 1)
-            
-            // Fila de encabezado principal (Azul Oscuro)
-            const headerRow1 = tablaPrincipal.querySelector('thead tr:first-child');
-            if (headerRow1) {
-                headerRow1.querySelectorAll('th').forEach(th => {
-                    th.style.backgroundColor = '#1e3c72'; 
-                    th.style.color = '#FFFFFF';
-                    th.style.fontSize = '12pt';
-                    th.style.whiteSpace = 'normal';
-                });
+            if (filas.length === 0) {
+                alert('No hay datos para exportar.');
+                return;
             }
 
-            // Fila de sub-encabezado (Azul Intermedio)
-            const headerRow2 = tablaPrincipal.querySelector('thead tr:nth-child(2)');
-            if (headerRow2) {
-                headerRow2.querySelectorAll('th').forEach(th => {
-                    th.style.backgroundColor = '#446fa6'; 
-                    th.style.color = '#FFFFFF';
-                    th.style.fontSize = '10pt';
-                });
-            }
+            // ── HOJA 1: Registro Detallado ──────────────────────────
+            const cab1 = [
+                '#', 'FUNCIONARIO', 'NOMBRE MICROS', 'CATEGORÍA',
+                'ABREV', 'PUNTO DE VENTA', 'NRO CHK', 'IMPORTE', 'TOTAL DSCTO',
+                'COMESTIBLES', 'TÉ/CAFÉ', 'TOTAL ALIMENTO',
+                'VINOS', 'GASEOSAS/AGUA', 'CERVEZA', 'LICORES', 'TOTAL BEBIDA',
+                'FECHA', 'INVITADO/MOTIVO', 'FIRMANTE', 'DIFERENCIA', 'OBSERVACIONES'
+            ];
 
+            const rows1 = [
+                [`CONSUMOS MENSUALES — ${formatearMes(mesActual)}`],
+                [],
+                cab1
+            ];
 
-            // 3. Construir HTML para mÃºltiples hojas
-            let hojas = [];
-            
-            // HOJA 1: Tabla Principal (Registro Detallado)
-            // Se restaura el H2, pero sin el color de fondo para evitar la celda fusionada "fea"
-            hojas.push(`
-                <div class="worksheet">
-                    <h2 style="color: #1e3c72; text-align: center; margin: 0 0 20px 0; font-size: 18pt; padding: 10px;">
-                        📊 CONSUMOS MENSUALES - REGISTRO DETALLADO
-                    </h2>
-                    ${tablaPrincipal.outerHTML}
-                </div>
-            `);
+            filas.forEach((fila, idx) => {
+                const num  = v => parseFloat(v) || 0;
+                const abrev = fila.cells[4].querySelector('select');
+                const pdv   = fila.cells[5].querySelector('select');
+                rows1.push([
+                    idx + 1,
+                    fila.cells[1].textContent.trim(),
+                    fila.cells[2].textContent.trim(),
+                    fila.cells[3].textContent.trim(),
+                    abrev ? abrev.value : '',
+                    pdv   ? pdv.value   : '',
+                    fila.cells[6].querySelector('input').value,
+                    num(fila.cells[7].querySelector('input').value),
+                    num(fila.cells[8].textContent),
+                    num(fila.cells[9].querySelector('input').value),
+                    num(fila.cells[10].querySelector('input').value),
+                    num(fila.cells[11].textContent),
+                    num(fila.cells[12].querySelector('input').value),
+                    num(fila.cells[13].querySelector('input').value),
+                    num(fila.cells[14].querySelector('input').value),
+                    num(fila.cells[15].querySelector('input').value),
+                    num(fila.cells[16].textContent),
+                    fila.cells[17].querySelector('input').value,
+                    fila.cells[18].querySelector('input').value,
+                    fila.cells[19].querySelector('input').value,
+                    num(fila.cells[20].textContent),
+                    fila.cells[21].querySelector('input').value,
+                ]);
+            });
 
-            // HOJA 2: Reportes Combinados (Resumen por CategorÃ­a + Matriz de DistribuciÃ³n)
-            let resumenSheet = '';
-            
+            // Fila de totales
+            const g = id => parseFloat(document.getElementById(id).textContent) || 0;
+            rows1.push([
+                'TOTALES', '', '', '', '', '', '',
+                g('totalImporte'), g('totalDscto'),
+                g('totalComestibles'), g('totalTeCafe'), g('totalAlimento'),
+                g('totalVinos'), g('totalGaseosas'), g('totalCerveza'),
+                g('totalLicores'), g('totalBebida'),
+                '', '', '', '', ''
+            ]);
+
+            const ws1 = XLSX.utils.aoa_to_sheet(rows1);
+            ws1['!cols'] = [
+                {wch:4},{wch:14},{wch:20},{wch:24},{wch:18},{wch:14},{wch:10},
+                {wch:10},{wch:11},{wch:13},{wch:10},{wch:14},
+                {wch:10},{wch:14},{wch:10},{wch:10},{wch:13},
+                {wch:12},{wch:22},{wch:14},{wch:11},{wch:22}
+            ];
+            // Merge título
+            ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:21} }];
+            XLSX.utils.book_append_sheet(wb, ws1, 'Registro Detallado');
+
+            // ── HOJA 2: Resumen por Categoría ───────────────────────
             if (document.getElementById('resumenDinamico').style.display !== 'none') {
-                
-                // El tÃ­tulo principal de la Hoja 2 tambiÃ©n se restaura, pero sin el color de fondo de bloque
-                resumenSheet += `
-                    <div class="worksheet page-break">
-                        <h2 style="color: #1e3c72; text-align: center; margin: 0 0 20px 0; font-size: 18pt; padding: 10px;">
-                            📈 REPORTES DE RESUMEN (VALORES SIN IGV)
-                        </h2>
-                        
-                        <p class="sub-report-title" style="color: #1e3c72; border-left-color: #0288d1;">
-                            1. Resumen por Categoría de Atención (Valores sin IGV)
-                        </p>
-                        ${document.getElementById('resumenContent').innerHTML}
-                        
-                        `;
+                const cab2 = ['CATEGORÍA','COMESTIBLES','TÉ/CAFÉ','VINOS','GASEOSAS/AGUA','CERVEZA','LICORES','TOTAL DSCTO','TOTAL SIN IGV'];
+                const rows2 = [
+                    [`RESUMEN POR CATEGORÍA (Sin IGV) — ${formatearMes(mesActual)}`],
+                    [],
+                    cab2
+                ];
 
-                if (document.getElementById('resumenDistribucion').style.display !== 'none') {
-                    resumenSheet += `
-                        <p class="sub-report-title" style="color: #6a1b9a; border-left-color: #9c27b0; margin-top: 30px;">
-                            2. Matriz de Distribución de Consumos (Cálculo Fijo)
-                        </p>
-                        <p style="text-align: center; color: #666; font-size: 10pt; margin-bottom: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
-                            <strong>Nota:</strong> Los valores mostrados corresponden a la aplicación de porcentajes fijos de distribución sobre los totales sin IGV
-                        </p>
-                        ${document.getElementById('distribucionContent').innerHTML}
-                    `;
-                }
-                
-                resumenSheet += `</div>`;
-                hojas.push(resumenSheet);
+                document.getElementById('tablaResumenBody').querySelectorAll('tr').forEach(tr => {
+                    rows2.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
+                    ));
+                });
+                document.getElementById('tablaResumenFoot').querySelectorAll('tr').forEach(tr => {
+                    rows2.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
+                    ));
+                });
+
+                const ws2 = XLSX.utils.aoa_to_sheet(rows2);
+                ws2['!cols'] = [{wch:30},{wch:14},{wch:10},{wch:10},{wch:14},{wch:10},{wch:10},{wch:13},{wch:15}];
+                ws2['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:8} }];
+                XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
             }
 
-            // 4. ConstrucciÃ³n del HTML y Descarga
-            const html = `
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
-                      xmlns:x="urn:schemas-microsoft-com:office:excel" 
-                      xmlns="http://www.w3.org/TR/REC-html40">
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                    <meta name="ProgId" content="Excel.Sheet">
-                    <meta name="Generator" content="Microsoft Excel 15">
-                    <title>Reporte de Consumos Mensuales</title>
-                    ${style}
-                </head>
-                <body>
-                    ${hojas.join('\n')}
-                </body>
-                </html>
-            `;
-            
-            // Crear y descargar archivo
-            const blob = new Blob(['\ufeff', html], { 
-                type: 'application/vnd.ms-excel;charset=utf-8' 
-            });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            const fecha = new Date().toISOString().slice(0,10);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', `Consumos_${mesActual}_${fecha}.xls`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            // NotificaciÃ³n de Ã©xito
-            alert('✅ Excel exportado exitosamente con ' + hojas.length + ' hoja(s)');
+            // ── HOJA 3: Distribución ────────────────────────────────
+            if (document.getElementById('resumenDistribucion').style.display !== 'none') {
+                const tablaD = document.getElementById('tablaDistribucion');
+                const rows3 = [
+                    [`MATRIZ DE DISTRIBUCIÓN — ${formatearMes(mesActual)}`],
+                    []
+                ];
+
+                tablaD.querySelectorAll('thead tr').forEach(tr => {
+                    rows3.push(Array.from(tr.querySelectorAll('th')).map(th => th.textContent.trim()));
+                });
+                tablaD.querySelectorAll('tbody tr').forEach(tr => {
+                    rows3.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
+                    ));
+                });
+                tablaD.querySelectorAll('tfoot tr').forEach(tr => {
+                    rows3.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
+                    ));
+                });
+
+                const ws3 = XLSX.utils.aoa_to_sheet(rows3);
+                XLSX.utils.book_append_sheet(wb, ws3, 'Distribución');
+            }
+
+            // ── Descargar ───────────────────────────────────────────
+            const fecha = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `Consumos_${mesActual}_${fecha}.xlsx`);
         }
 
         // Inicialización al cargar la página
