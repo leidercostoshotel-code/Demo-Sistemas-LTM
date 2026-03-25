@@ -3,10 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Consumos Mensuales</title>
+    <title>Gestor de Consumos Mensuales - Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos generales */
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: rgba(26, 26, 46, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.03);
+            --gold: #d4a853;
+            --gold-light: #f0d590;
+            --gold-dark: #b8860b;
+            --accent-emerald: #2ecc71;
+            --accent-ruby: #e74c3c;
+            --accent-sapphire: #3498db;
+            --accent-amethyst: #9b59b6;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b8;
+            --text-muted: #6c6c80;
+            --border-subtle: rgba(212, 168, 83, 0.15);
+            --border-gold: rgba(212, 168, 83, 0.4);
+            --shadow-gold: 0 0 30px rgba(212, 168, 83, 0.08);
+            --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,92 +38,165 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(212, 168, 83, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(52, 152, 219, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(155, 89, 182, 0.03) 0%, transparent 50%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
+            color: var(--text-primary);
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1700px;
             margin: 0 auto;
         }
 
+        /* --- Header Premium --- */
         .header {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 28px 36px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-gold);
+            box-shadow: var(--shadow-gold), var(--shadow-heavy);
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
         }
 
         .header h1 {
-            color: #1e3c72;
-            font-size: 2em;
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-light);
+            font-size: 1.9em;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .header h1 i {
+            color: var(--gold);
+            font-size: 0.85em;
         }
 
         .btn-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 25px;
+            padding: 11px 22px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.95em;
+            border-radius: var(--radius-sm);
+            font-size: 0.88em;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
+            background: linear-gradient(135deg, #2c3e6d, #3a5a9f);
+            color: var(--text-primary);
+            border: 1px solid rgba(58, 90, 159, 0.4);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(58, 90, 159, 0.35);
+            border-color: rgba(58, 90, 159, 0.7);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #43e97b, #38f9d7);
-            color: white;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: #1a1a2e;
+            border: 1px solid rgba(212, 168, 83, 0.5);
+            font-weight: 700;
         }
 
         .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(212, 168, 83, 0.35);
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            color: white;
+            background: linear-gradient(135deg, #8b1a1a, #c0392b);
+            color: var(--text-primary);
+            border: 1px solid rgba(192, 57, 43, 0.4);
         }
 
         .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(192, 57, 43, 0.35);
         }
 
-        /* --- Estilos para la Tabla Principal --- */
+        /* --- Tabla Principal Premium --- */
         .table-container {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            padding: 0;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-heavy);
             overflow-x: auto;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--gold-dark);
+            border-radius: 4px;
         }
 
         table {
@@ -109,21 +206,24 @@
         }
 
         thead {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
+            background: linear-gradient(135deg, #1a1a2e, #252545);
+            color: var(--gold-light);
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
         th {
-            padding: 12px 8px;
+            padding: 14px 10px;
             text-align: center;
             font-weight: 600;
-            font-size: 0.85em;
+            font-size: 0.8em;
             white-space: nowrap;
-            border-right: 1px solid #99aab5; 
+            border-right: 1px solid rgba(212, 168, 83, 0.12);
+            border-bottom: 2px solid var(--gold-dark);
             min-width: 90px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         th:first-child {
@@ -135,19 +235,25 @@
         }
 
         tbody tr {
-            border-bottom: 1px solid #d0d0d0;
-            transition: background-color 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.015);
         }
 
         tbody tr:hover {
-            background-color: #f8f9ff;
+            background: rgba(212, 168, 83, 0.06);
+            box-shadow: inset 0 0 0 1px rgba(212, 168, 83, 0.1);
         }
 
         td {
-            padding: 8px;
+            padding: 8px 10px;
             font-size: 0.85em;
-            border-right: 1px solid #cccccc; 
+            border-right: 1px solid rgba(255, 255, 255, 0.04);
             min-width: 90px;
+            color: var(--text-secondary);
         }
 
         td:first-child {
@@ -161,182 +267,287 @@
         td input, td select {
             width: 100%;
             min-width: 80px;
-            padding: 6px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 0.9em;
-            transition: border-color 0.3s ease;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 0.88em;
+            font-family: 'Inter', sans-serif;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        td input:focus, td select:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(212, 168, 83, 0.06);
+            box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.1);
+        }
+
+        td input::placeholder {
+            color: var(--text-muted);
         }
 
         td input[type="number"] {
             text-align: right;
         }
 
+        td select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4a853' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 28px;
+        }
+
+        td select option {
+            background: #1a1a2e;
+            color: var(--text-primary);
+        }
+
         .row-number {
-            background-color: #f5f5f5;
-            font-weight: 600;
-            color: #1e3c72;
+            background: rgba(212, 168, 83, 0.08);
+            font-weight: 700;
+            color: var(--gold);
             text-align: center;
+            font-size: 0.9em;
         }
 
         .calculated {
-            background-color: #e8f5e9;
-            font-weight: 600;
-            color: #2e7d32;
+            background: rgba(46, 204, 113, 0.08);
+            font-weight: 700;
+            color: var(--accent-emerald);
             text-align: right;
         }
-        
+
         td:nth-child(2), td:nth-child(3), td:nth-child(4) {
             font-weight: 600;
-            color: #1e3c72;
-            background-color: #f0f4ff;
+            color: var(--gold-light);
+            background: rgba(212, 168, 83, 0.05);
             text-align: center;
+            font-size: 0.82em;
         }
 
         .totals-row {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            background: linear-gradient(135deg, rgba(212, 168, 83, 0.12), rgba(212, 168, 83, 0.06)) !important;
             font-weight: bold;
             font-size: 0.95em;
+            border-top: 2px solid var(--gold-dark) !important;
         }
 
         .totals-row td {
-            padding: 12px 8px;
-            color: #e65100;
+            padding: 14px 10px;
+            color: var(--gold-light) !important;
+            font-weight: 700;
         }
 
         .category-alimentos {
-            background-color: #fff3e0 !important;
+            background: rgba(230, 126, 34, 0.15) !important;
             font-weight: 600;
-            color: #e65100;
+            color: #f39c12 !important;
+            border-bottom-color: #e67e22 !important;
         }
 
         .category-bebidas {
-            background-color: #e0f2f1 !important;
+            background: rgba(46, 204, 113, 0.12) !important;
             font-weight: 600;
-            color: #00695c;
+            color: #2ecc71 !important;
+            border-bottom-color: #27ae60 !important;
         }
-        
-        /* --- Estilos para las Tablas DinÃ¡micas (Resumen) --- */
+
+        /* Boton eliminar fila */
+        .btn-delete-row {
+            background: linear-gradient(135deg, #5c1a1a, #8b2020);
+            border: 1px solid rgba(139, 32, 32, 0.5);
+            color: #e74c3c;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete-row:hover {
+            background: linear-gradient(135deg, #8b2020, #c0392b);
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        /* --- Tablas Resumen Premium --- */
         .resumen-section {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-gold);
+            box-shadow: var(--shadow-gold), var(--shadow-heavy);
             margin-top: 30px;
-            border: 3px solid #2a5298;
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 40px;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .resumen-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+        }
+
         #resumenDinamico, #resumenDistribucion {
-            display: none; 
+            display: none;
             width: 100%;
             overflow-x: auto;
         }
 
         .resumen-section h2 {
-            color: #1e3c72;
-            margin-bottom: 15px;
-            font-size: 1.8em;
+            color: var(--gold-light);
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 20px;
+            font-size: 1.5em;
             display: flex;
             align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-gold);
+            padding-bottom: 15px;
+        }
+
+        .resumen-section h2 i {
+            color: var(--gold);
         }
 
         #tablaResumen, #tablaDistribucion {
             width: 100%;
-            min-width: 900px; 
-            border-collapse: separate; 
+            min-width: 900px;
+            border-collapse: separate;
             border-spacing: 0;
             overflow: hidden;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
         }
-        
+
         #tablaResumen th, #tablaResumen td, #tablaDistribucion th, #tablaDistribucion td {
             border: none;
-            padding: 12px;
+            padding: 14px;
             text-align: right;
             font-size: 0.9em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
-        
-        /* Estilos de la Tabla 1 (Resumen CategorÃ­a - Azul) */
-           #tablaResumen thead th {
-    background: linear-gradient(90deg, #fb8c00, #ffb74d); /* Naranja */
-    color: white;
-    font-weight: bold;
-    text-align: center;
-    font-size: 1em;
-    border-bottom: 4px solid #e65100; /* Naranja oscuro */
-}
 
-
-        /* Estilos de la Tabla 2 (Matriz de DistribuciÃ³n - PÃºrpura/Morado) */
-        #tablaDistribucion thead th {
-            background: linear-gradient(90deg, #6a1b9a, #9c27b0); /* PÃºrpura */
-            color: white;
-            font-weight: bold;
+        /* Tabla 1 - Resumen Categoria (Dorado/Ambar) */
+        #tablaResumen thead th {
+            background: linear-gradient(135deg, #7a5a00, #b8860b);
+            color: #fff;
+            font-weight: 700;
             text-align: center;
-            font-size: 1em;
-            border-bottom: 4px solid #4a148c;
+            font-size: 0.92em;
+            border-bottom: 3px solid var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        
+
+        /* Tabla 2 - Distribucion (Amatista) */
+        #tablaDistribucion thead th {
+            background: linear-gradient(135deg, #4a1a6b, #7b2ea0);
+            color: #fff;
+            font-weight: 700;
+            text-align: center;
+            font-size: 0.92em;
+            border-bottom: 3px solid var(--accent-amethyst);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         #tablaResumen tbody tr:nth-child(even), #tablaDistribucion tbody tr:nth-child(even) {
-            background-color: #f4f7ff; 
+            background: rgba(255, 255, 255, 0.02);
         }
-        
+
         #tablaResumen tbody tr:hover, #tablaDistribucion tbody tr:hover {
-            background-color: #e6eaff;
+            background: rgba(212, 168, 83, 0.06);
         }
-        
+
         #tablaResumen tbody td:first-child {
             text-align: left;
-            font-weight: bold;
-            color: #2a5298;
-            background-color: #e6f7ff;
-            border-left: 5px solid #4a90e2;
+            font-weight: 700;
+            color: var(--gold-light);
+            background: rgba(212, 168, 83, 0.08);
+            border-left: 4px solid var(--gold);
         }
 
         #tablaDistribucion tbody td:first-child {
             text-align: left;
-            font-weight: bold;
-            color: #6a1b9a;
-            background-color: #f3e5f5; /* PÃºrpura muy claro */
-            border-left: 5px solid #9c27b0;
+            font-weight: 700;
+            color: #ce93d8;
+            background: rgba(155, 89, 182, 0.08);
+            border-left: 4px solid var(--accent-amethyst);
         }
-
 
         #tablaResumen tfoot tr {
-            background-color: #ffe0b2;
+            background: rgba(212, 168, 83, 0.12);
             font-weight: bold;
-            font-size: 1.1em;
-            color: #e65100;
-            border-top: 3px double #e65100;
+            font-size: 1.05em;
+            color: var(--gold-light);
+            border-top: 2px solid var(--gold);
         }
-        
+
         #tablaDistribucion tfoot tr {
-            background-color: #fce4ec; /* Rosa/Rojo oscuro para totales */
+            background: rgba(155, 89, 182, 0.12);
             font-weight: bold;
-            font-size: 1.1em;
-            color: #880e4f;
-            border-top: 3px double #880e4f;
+            font-size: 1.05em;
+            color: #ce93d8;
+            border-top: 2px solid var(--accent-amethyst);
         }
 
         #tablaResumen tfoot td:first-child, #tablaDistribucion tfoot td:first-child {
             text-align: left;
-            color: #e65100;
-            font-size: 1.2em;
+            font-size: 1.1em;
+        }
+
+        #tablaResumen tfoot td:first-child {
+            color: var(--gold-light);
+        }
+
+        #tablaDistribucion tfoot td:first-child {
+            color: #ce93d8;
         }
 
         .no-igv-value {
             font-weight: 700;
-            color: #38761d;
+            color: var(--accent-emerald);
         }
-        
+
         .distribution-value {
             font-weight: 700;
-            color: #6a1b9a; /* PÃºrpura profundo para valores */
+            color: #ce93d8;
+        }
+
+        /* --- Animaciones --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header { animation: fadeInUp 0.5s ease-out; }
+        .table-container { animation: fadeInUp 0.6s ease-out 0.1s both; }
+        .resumen-section { animation: fadeInUp 0.6s ease-out 0.2s both; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .header h1 { font-size: 1.4em; }
+            .btn-group { justify-content: center; }
+            .btn { padding: 9px 16px; font-size: 0.82em; }
         }
     </style>
 </head>
@@ -344,7 +555,7 @@
     <div class="container">
         <div class="header">
             <h1>
-                <i class="fas fa-table"></i>
+                <i class="fas fa-gem"></i>
                 Gestor de Consumos Mensuales
             </h1>
             <div class="btn-group">
@@ -354,7 +565,7 @@
                 <button class="btn btn-primary" onclick="exportarExcel()">
                     <i class="fas fa-file-excel"></i> Exportar Excel
                 </button>
-                <button class="btn btn-primary" style="background: linear-gradient(135deg, #d32f2f, #ff7043);" onclick="generarReporteCompleto()">
+                <button class="btn btn-primary" style="background: linear-gradient(135deg, #8b1a1a, #c0392b); border-color: rgba(192,57,43,0.5);" onclick="generarReporteCompleto()">
                     <i class="fas fa-chart-bar"></i> Generar Resumen (Sin IGV)
                 </button>
                 <button class="btn btn-danger" onclick="limpiarTodo()">
@@ -448,7 +659,7 @@
 
             <div id="resumenDistribucion">
                 <h2><i class="fas fa-percent"></i> 2. Matriz de Distribución de Consumos (Cálculo Fijo)</h2>
-                <p style="margin-bottom: 15px; color: #444; font-size: 0.9em;">*Cálculo: Los valores de la tabla superior (Sin IGV) son multiplicados por los porcentajes fijos de distribuciÃ³n. Las columnas de CategorÃ­a se generan dinÃ¡micamente según tus datos.</p>
+                <p style="margin-bottom: 15px; color: var(--text-muted); font-size: 0.85em; padding: 10px 16px; background: rgba(155, 89, 182, 0.06); border-radius: 8px; border-left: 3px solid var(--accent-amethyst);">*Cálculo: Los valores de la tabla superior (Sin IGV) son multiplicados por los porcentajes fijos de distribución. Las columnas de Categoría se generan dinámicamente según tus datos.</p>
                 <div id="distribucionContent">
                     <table id="tablaDistribucion">
                         <thead>
@@ -767,11 +978,11 @@
 
             // Resaltar si hay diferencia (excepto si es 0.00 o muy cerca de cero)
             if (Math.abs(diferencia) > 0.01) {
-                diferenciaCell.style.backgroundColor = '#ffcdd2'; // Rojo claro
-                diferenciaCell.style.color = '#c62828'; // Rojo oscuro
+                diferenciaCell.style.backgroundColor = 'rgba(231, 76, 60, 0.12)';
+                diferenciaCell.style.color = '#e74c3c';
             } else {
-                diferenciaCell.style.backgroundColor = '#e8f5e9'; // Verde claro (Calculated)
-                diferenciaCell.style.color = '#2e7d32'; // Verde oscuro
+                diferenciaCell.style.backgroundColor = 'rgba(46, 204, 113, 0.08)';
+                diferenciaCell.style.color = '#2ecc71';
             }
         }
 
@@ -943,7 +1154,7 @@
                     <td class="no-igv-value">${datos.cerveza.toFixed(2)}</td>
                     <td class="no-igv-value">${datos.licores.toFixed(2)}</td>
                     <td class="no-igv-value">${datos.totalDscto.toFixed(2)}</td>
-                    <td class="no-igv-value" style="font-size: 1.1em; color: #ff4500;">${datos.total.toFixed(2)}</td>
+                    <td class="no-igv-value" style="font-size: 1.1em; color: #d4a853; font-weight: 800;">${datos.total.toFixed(2)}</td>
                 `;
                 tbodyResumen.appendChild(tr);
 
@@ -967,7 +1178,7 @@
                 <td>${granTotal.cerveza.toFixed(2)}</td>
                 <td>${granTotal.licores.toFixed(2)}</td>
                 <td>${granTotal.totalDscto.toFixed(2)}</td>
-                <td style="font-size: 1.3em; color: #ff4500;">${granTotal.total.toFixed(2)}</td>
+                <td style="font-size: 1.3em; color: #d4a853; font-weight: 800;">${granTotal.total.toFixed(2)}</td>
             `;
             tfootResumen.appendChild(trTotal);
 
@@ -996,7 +1207,7 @@
             categoriasPresentes.forEach(cat => {
                 theadHTML += `<th>${cat}</th>`;
             });
-            theadHTML += `<th style="background: linear-gradient(90deg, #6a1b9a, #9c27b0); color: white; border-bottom: 4px solid #4a148c; font-weight: bold;">TOTAL DISTRIBUIDO</th></tr></thead>`;
+            theadHTML += `<th style="background: linear-gradient(135deg, #4a1a6b, #7b2ea0); color: #fff; border-bottom: 3px solid #9b59b6; font-weight: 700;">TOTAL DISTRIBUIDO</th></tr></thead>`;
             tablaDistribucion.querySelector('thead').outerHTML = theadHTML; // Reemplazar thead dinámicamente
 
             // 3. Inicializar Totales
@@ -1039,7 +1250,7 @@
 
                 granTotalDistribuido += filaTotalDistribuido;
                 
-                trHTML += `<td class="distribution-value" style="font-size: 1.1em; color: #d81b60;">${filaTotalDistribuido.toFixed(2)}</td>`;
+                trHTML += `<td class="distribution-value" style="font-size: 1.1em; color: #e1bee7; font-weight: 800;">${filaTotalDistribuido.toFixed(2)}</td>`;
                 tr.innerHTML = trHTML;
                 tbodyDistribucion.appendChild(tr);
             });
@@ -1049,10 +1260,10 @@
             let footHTML = `<td style="text-align: left; font-size: 1.2em;">TOTAL POR CATEGORÍA</td>`;
             
             categoriasPresentes.forEach(cat => {
-                 footHTML += `<td style="font-weight: bold; font-size: 1.1em; color: #6a1b9a;">${totalesPorCategoria[cat].toFixed(2)}</td>`;
+                 footHTML += `<td style="font-weight: bold; font-size: 1.1em; color: #ce93d8;">${totalesPorCategoria[cat].toFixed(2)}</td>`;
             });
 
-            footHTML += `<td style="font-weight: bold; font-size: 1.2em; color: #880e4f;">${granTotalDistribuido.toFixed(2)}</td>`;
+            footHTML += `<td style="font-weight: bold; font-size: 1.2em; color: #e1bee7;">${granTotalDistribuido.toFixed(2)}</td>`;
             trTotalFoot.innerHTML = footHTML;
             tfootDistribucion.appendChild(trTotalFoot);
         }
