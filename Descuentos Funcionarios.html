@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Consumos Mensuales</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #1e3c72;
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        /* --- Estilos para la Tabla Principal --- */
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1400px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85em;
+            white-space: nowrap;
+            border-right: 1px solid #99aab5; 
+            min-width: 90px;
+        }
+
+        th:first-child {
+            min-width: 40px;
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #d0d0d0;
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        td {
+            padding: 8px;
+            font-size: 0.85em;
+            border-right: 1px solid #cccccc; 
+            min-width: 90px;
+        }
+
+        td:first-child {
+            min-width: 40px;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        td input, td select {
+            width: 100%;
+            min-width: 80px;
+            padding: 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: border-color 0.3s ease;
+        }
+
+        td input[type="number"] {
+            text-align: right;
+        }
+
+        .row-number {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            color: #1e3c72;
+            text-align: center;
+        }
+
+        .calculated {
+            background-color: #e8f5e9;
+            font-weight: 600;
+            color: #2e7d32;
+            text-align: right;
+        }
+        
+        td:nth-child(2), td:nth-child(3), td:nth-child(4) {
+            font-weight: 600;
+            color: #1e3c72;
+            background-color: #f0f4ff;
+            text-align: center;
+        }
+
+        .totals-row {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .totals-row td {
+            padding: 12px 8px;
+            color: #e65100;
+        }
+
+        .category-alimentos {
+            background-color: #fff3e0 !important;
+            font-weight: 600;
+            color: #e65100;
+        }
+
+        .category-bebidas {
+            background-color: #e0f2f1 !important;
+            font-weight: 600;
+            color: #00695c;
+        }
+        
+        /* --- Estilos para las Tablas DinÃ¡micas (Resumen) --- */
+        .resumen-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            margin-top: 30px;
+            border: 3px solid #2a5298;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        #resumenDinamico, #resumenDistribucion {
+            display: none; 
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .resumen-section h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        #tablaResumen, #tablaDistribucion {
+            width: 100%;
+            min-width: 900px; 
+            border-collapse: separate; 
+            border-spacing: 0;
+            overflow: hidden;
+        }
+        
+        #tablaResumen th, #tablaResumen td, #tablaDistribucion th, #tablaDistribucion td {
+            border: none;
+            padding: 12px;
+            text-align: right;
+            font-size: 0.9em;
+        }
+        
+        /* Estilos de la Tabla 1 (Resumen CategorÃ­a - Azul) */
+           #tablaResumen thead th {
+    background: linear-gradient(90deg, #fb8c00, #ffb74d); /* Naranja */
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1em;
+    border-bottom: 4px solid #e65100; /* Naranja oscuro */
+}
+
+
+        /* Estilos de la Tabla 2 (Matriz de DistribuciÃ³n - PÃºrpura/Morado) */
+        #tablaDistribucion thead th {
+            background: linear-gradient(90deg, #6a1b9a, #9c27b0); /* PÃºrpura */
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1em;
+            border-bottom: 4px solid #4a148c;
+        }
+        
+        #tablaResumen tbody tr:nth-child(even), #tablaDistribucion tbody tr:nth-child(even) {
+            background-color: #f4f7ff; 
+        }
+        
+        #tablaResumen tbody tr:hover, #tablaDistribucion tbody tr:hover {
+            background-color: #e6eaff;
+        }
+        
+        #tablaResumen tbody td:first-child {
+            text-align: left;
+            font-weight: bold;
+            color: #2a5298;
+            background-color: #e6f7ff;
+            border-left: 5px solid #4a90e2;
+        }
+
+        #tablaDistribucion tbody td:first-child {
+            text-align: left;
+            font-weight: bold;
+            color: #6a1b9a;
+            background-color: #f3e5f5; /* PÃºrpura muy claro */
+            border-left: 5px solid #9c27b0;
+        }
+
+
+        #tablaResumen tfoot tr {
+            background-color: #ffe0b2;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #e65100;
+            border-top: 3px double #e65100;
+        }
+        
+        #tablaDistribucion tfoot tr {
+            background-color: #fce4ec; /* Rosa/Rojo oscuro para totales */
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #880e4f;
+            border-top: 3px double #880e4f;
+        }
+
+        #tablaResumen tfoot td:first-child, #tablaDistribucion tfoot td:first-child {
+            text-align: left;
+            color: #e65100;
+            font-size: 1.2em;
+        }
+
+        .no-igv-value {
+            font-weight: 700;
+            color: #38761d;
+        }
+        
+        .distribution-value {
+            font-weight: 700;
+            color: #6a1b9a; /* PÃºrpura profundo para valores */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i class="fas fa-table"></i>
+                Gestor de Consumos Mensuales
+            </h1>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="agregarFila()">
+                    <i class="fas fa-plus"></i> Agregar Fila
+                </button>
+                <button class="btn btn-primary" onclick="exportarExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+                <button class="btn btn-primary" style="background: linear-gradient(135deg, #d32f2f, #ff7043);" onclick="generarReporteCompleto()">
+                    <i class="fas fa-chart-bar"></i> Generar Resumen (Sin IGV)
+                </button>
+                <button class="btn btn-danger" onclick="limpiarTodo()">
+                    <i class="fas fa-trash"></i> Limpiar Todo
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="tablaConsumos">
+                <thead>
+                    <tr>
+                        <th rowspan="2">#</th>
+                        <th rowspan="2">FUNCIONARIO</th>
+                        <th rowspan="2">NOMBRE MICROS</th>
+                        <th rowspan="2">CATEGORIA</th>
+                        <th rowspan="2">ABREV</th>
+                        <th rowspan="2">Punto de Venta</th>
+                        <th rowspan="2">Nro Chk</th>
+                        <th rowspan="2">Importe</th>
+                        <th rowspan="2">Total Dscto</th>
+                        <th colspan="3" class="category-alimentos"><i class="fas fa-utensils"></i> ALIMENTOS</th>
+                        <th colspan="5" class="category-bebidas"><i class="fas fa-wine-glass"></i> BEBIDAS</th>
+                         <th rowspan="2">Fecha de Transac.</th>
+                         <th rowspan="2">Invitado/Motivo</th>
+                         <th rowspan="2">Firmante</th>
+                         <th rowspan="2">Diferencia</th>
+                         <th rowspan="2">Observaciones</th>
+
+                        <th rowspan="2">Acciones</th>
+                    </tr>
+                    <tr>
+                        <th class="category-alimentos">Comestibles</th>
+                        <th class="category-alimentos">Té/Café</th>
+                        <th class="category-alimentos">Total Alimento</th>
+                        <th class="category-bebidas">Vinos</th>
+                        <th class="category-bebidas">Gaseosas/Agua</th>
+                        <th class="category-bebidas">Cerveza</th>
+                        <th class="category-bebidas">Licores</th>
+                        <th class="category-bebidas">Total Bebida</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaBody">
+                </tbody>
+                <tfoot>
+                    <tr class="totals-row">
+                        <td colspan="7" style="text-align: right; padding-right: 15px;">
+                            <i class="fas fa-calculator"></i> TOTALES:
+                        </td>
+                        <td id="totalImporte" style="text-align: right;">0.00</td>
+                        <td id="totalDscto" style="text-align: right;">0.00</td>
+                        <td id="totalComestibles" style="text-align: right;">0.00</td>
+                        <td id="totalTeCafe" style="text-align: right;">0.00</td>
+                        <td id="totalAlimento" style="text-align: right;">0.00</td>
+                        <td id="totalVinos" style="text-align: right;">0.00</td>
+                        <td id="totalGaseosas" style="text-align: right;">0.00</td>
+                        <td id="totalCerveza" style="text-align: right;">0.00</td>
+                        <td id="totalLicores" style="text-align: right;">0.00</td>
+                        <td id="totalBebida" style="text-align: right;">0.00</td>
+                        <td colspan="5"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="resumen-section" id="resumenSeccion">
+            <div id="resumenDinamico">
+                <h2><i class="fas fa-chart-pie"></i> 1. Resumen por Categoría de Atención (Valores sin IGV)</h2>
+                <div id="resumenContent">
+                    <table id="tablaResumen">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">CATEGORIA</th>
+                                <th><i class="fas fa-utensils"></i> Comestibles</th>
+                                <th><i class="fas fa-coffee"></i> Té/Café</th>
+                                <th><i class="fas fa-wine-bottle"></i> Vinos</th>
+                                <th><i class="fas fa-tint"></i> Gaseosas/Agua</th>
+                                <th><i class="fas fa-beer"></i> Cerveza</th>
+                                <th><i class="fas fa-glass-whiskey"></i> Licores</th>
+                                <th><i class="fas fa-tag"></i> Total Dscto</th>
+                                <th><i class="fas fa-dollar-sign"></i> TOTAL Sin IGV</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaResumenBody">
+                            </tbody>
+                        <tfoot id="tablaResumenFoot">
+                            </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div id="resumenDistribucion">
+                <h2><i class="fas fa-percent"></i> 2. Matriz de Distribución de Consumos (Cálculo Fijo)</h2>
+                <p style="margin-bottom: 15px; color: #444; font-size: 0.9em;">*Cálculo: Los valores de la tabla superior (Sin IGV) son multiplicados por los porcentajes fijos de distribuciÃ³n. Las columnas de CategorÃ­a se generan dinÃ¡micamente según tus datos.</p>
+                <div id="distribucionContent">
+                    <table id="tablaDistribucion">
+                        <thead>
+                             <tr>
+                                <th style="text-align: left;">PRODUCTO DISTRIB.</th>
+                                <th style="background: #9c27b0;">TOTAL DISTRIBUIDO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaDistribucionBody">
+                            </tbody>
+                        <tfoot id="tablaDistribucionFoot">
+                            </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+        let filaContador = 1;
+        const IGV_DIVISOR = 1.28;
+
+        // --- DATOS DE REFERENCIA (Base de datos) ---
+        const dbFuncionario = { 
+            "ATEN. VyM": "ATENCIONES", "At V&B": "ATENCIONES", "ATEN. GTE. GENERAL": "ATENCIONES", "ATEN. AyB": "ATENCIONES", "ATEN. DIV. HAB.": "ATENCIONES", "At Mant": "ATENCIONES", "At Segur": "ATENCIONES", "At RRHH": "ATENCIONES", "ATEN. CONTRALORIA": "ATENCIONES", "Aten/Compras": "ATENCIONES", "At. Sistemas": "ATENCIONES", "FUNCION GTE.GENERAL": "FUNCIONARIO", "Func/Compras": "FUNCIONARIO", "F Mant": "FUNCIONARIO", "F RRHH": "FUNCIONARIO", "FUNC. AYB": "FUNCIONARIO", "F A&B": "FUNCIONARIO", "FUNC.DIV.HABITAC": "FUNCIONARIO", "F Segur": "FUNCIONARIO", "F Contral": "FUNCIONARIO", "F Sistemas": "FUNCIONARIO", "Escape": "OTROS", "Paq La Fondue": "OTROS", "Paq Sushi": "OTROS", "Paq La Locanda": "OTROS", "Paq Relax": "OTROS", "Escape LAF": "OTROS", "Inspire SC": "OTROS", "Paq Big Box": "OTROS", "Celebrate SC": "OTROS", "welcome sour": "OTROS", "welcome cerv": "OTROS", "Welcome LCHA": "OTROS", "F.Spa": "FUNCIONARIO", "Func/V&M": "FUNCIONARIO" 
+        }; 
+        const dbMicros = { 
+            "ATEN. VyM": "Aten/V&M", "At V&B": "At V&B", "ATEN. GTE. GENERAL": "Aten/Gte.General", "ATEN. AyB": "Aten/A&B", "ATEN. DIV. HAB.": "Aten/Div.Habitac", "At Mant": "Aten/Mantenimiento", "At Segur": "Aten/Seguridad", "At RRHH": "Aten/RRHH", "ATEN. CONTRALORIA": "Aten/Contraloria", "Aten/Compras": "Aten/Compras", "At. Sistemas": "Aten/Sistemas", "FUNCION GTE.GENERAL": "Func/Gte.General", "Func/Compras": "Func/Compras", "F Mant": "Func/Mantenimiento", "F RRHH": "Func/RRHH", "FUNC. AYB": "Func/A&B", "F A&B": "Func/A&B", "FUNC.DIV.HABITAC": "Func/Div.Habitac", "F Segur": "Func/Seguridad", "F Contral": "Func/Contraloria", "F Sistemas": "Func/Sistemas", "Escape": "ESCAPE", "Paq La Fondue": "PAQ LA FONDUE", "Paq Sushi": "PAQ SUSHI", "Paq La Locanda": "PAQ LA LOCANDA", "Paq Relax": "PAQ RELAX", "Escape LAF": "ESCAPE LAF", "Inspire SC": "INSPIRE SC", "Paq Big Box": "PAQ BIG BOX", "Celebrate SC": "CELEBRATE SC", "welcome sour": "WELCOME CERVEZA", "welcome cerv": "WELCOME CERVEZA", "Welcome LCHA": "WELCOME LCHA", "F.Spa": "LESLIE BENZAQUEN", "Func/V&M": "MONICA MALDONADO" 
+        }; 
+        const dbCategoria = { 
+            "ATEN. VyM": "ATENCIÓN V&M", "At V&B": "ATENCCIÓN V&B", "ATEN. GTE. GENERAL": "ATENCCIÓN GERENCIA", "ATEN. AyB": "ATENCIÓN A&B", "ATEN. DIV. HAB.": "ATENCIÓN DIV. HABITACIONES", "At Mant": "ATENCIÓN MANTENIMIENTO", "At Segur": "ATENCIÓN SEGURIDAD", "At RRHH": "ATENCIÓN RRHH", "ATEN. CONTRALORIA": "ATENCIÓN CONTRALORÍA", "Aten/Compras": "ATENCIÓN COMPRAS", "At. Sistemas": "ATENCIÓN SISTEMAS", "FUNCION GTE.GENERAL": "GERENCIA GENERAL", "Func/Compras": "COMPRAS", "F Mant": "MANTENIMIENTO", "F RRHH": "RRHH", "FUNC. AYB": "A&B", "F A&B": "A&B", "FUNC.DIV.HABITAC": "DIV. HABITACIONES", "F Segur": "SEGURIDAD", "F Contral": "CONTRALORÍA", "F Sistemas": "SISTEMAS", "Escape": "PAQUETES ESPECIALES", "Paq La Fondue": "PAQUETES ESPECIALES", "Paq Sushi": "PAQUETES ESPECIALES", "Paq La Locanda": "PAQUETES ESPECIALES", "Paq Relax": "PAQUETES ESPECIALES", "Escape LAF": "PAQUETES ESPECIALES", "Inspire SC": "PAQUETES ESPECIALES", "Paq Big Box": "PAQUETES ESPECIALES", "Celebrate SC": "PAQUETES ESPECIALES", "welcome sour": "CORTESÍA", "welcome cerv": "CORTESÍA", "Welcome LCHA": "CORTESÍA", "F.Spa": "FUNCIONARIO", "Func/V&M": "FUNCIONARIO" 
+        };
+        // --- PORCENTAJES PARA LA TABLA DE DISTRIBUCIÓN (Tabla 2) ---
+        const dbPorcentajesDistribucion = {
+            comestibles: 0.45, // 45%
+            teCafe: 0.15, // 15%
+            vinos: 0.60, // 60%
+            gaseosas: 0.20, // 20%
+            cerveza: 0.25, // 25%
+            licores: 0.30 // 30%
+        };
+        // --- ESTRUCTURA DE LA TABLA DE DISTRIBUCIÓN ---
+        const productosDistribucion = ['Comestibles', 'Té/Café', 'Vinos', 'Gaseosas/Agua', 'Cerveza', 'Licores'];
+
+        // FunciÃ³n de utilidad para dividir por IGV
+        function calcularSinIGV(valor) {
+            return valor / IGV_DIVISOR;
+        }
+
+        function buscarFuncionario(abreviatura) {
+            return dbFuncionario[abreviatura] || "NO ENCONTRADO";
+        }
+
+        function buscarMicros(abreviatura) {
+            return dbMicros[abreviatura] || "NO ENCONTRADO";
+        }
+
+        function buscarCategoria(abreviatura) {
+            return dbCategoria[abreviatura] || "NO ENCONTRADO";
+        }
+
+        function actualizarCamposBusqueda(selectAbrev) {
+            const fila = selectAbrev.closest('tr');
+            const abreviatura = selectAbrev.value;
+            fila.cells[1].textContent = buscarFuncionario(abreviatura);
+            fila.cells[2].textContent = buscarMicros(abreviatura);
+            fila.cells[3].textContent = buscarCategoria(abreviatura);
+            calcularTotales();
+            guardarDatos(); // <--- AÃ‘ADIDO
+        }
+        
+        // --- FUNCIONES DE PERSISTENCIA (localStorage) ---
+        function guardarDatos() {
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+            const datos = [];
+
+            filas.forEach(fila => {
+                // Obtenemos los valores relevantes de la fila
+                const importe = fila.cells[7].querySelector('input').value;
+                const comestibles = fila.cells[9].querySelector('input').value;
+                const teCafe = fila.cells[10].querySelector('input').value;
+                const vinos = fila.cells[12].querySelector('input').value;
+                const gaseosas = fila.cells[13].querySelector('input').value;
+                const cerveza = fila.cells[14].querySelector('input').value;
+                const licores = fila.cells[15].querySelector('input').value;
+                const fecha = fila.cells[17].querySelector('input').value;
+                const invitadoMotivo = fila.cells[18].querySelector('input').value;
+                const firmante = fila.cells[19].querySelector('input').value;
+                const observaciones = fila.cells[21].querySelector('input').value;
+
+                // TambiÃ©n guardamos el valor del Select (Abreviatura)
+                const selectAbrev = fila.cells[4].querySelector('select');
+                const abreviatura = selectAbrev ? selectAbrev.value : "";
+                
+                // Y el Select de Punto de Venta
+                const selectPdv = fila.cells[5].querySelector('select');
+                const pdv = selectPdv ? selectPdv.value : "";
+                
+                // Y el Nro Chk
+                const nroChk = fila.cells[6].querySelector('input').value;
+
+                datos.push({
+                    abreviatura,
+                    pdv,
+                    nroChk,
+                    importe,
+                    comestibles,
+                    teCafe,
+                    vinos,
+                    gaseosas,
+                    cerveza,
+                    licores,
+                    fecha,
+                    invitadoMotivo,
+                    firmante,
+                    observaciones
+                });
+            });
+
+            // Guardar el array de objetos como JSON en localStorage
+            try {
+                localStorage.setItem('consumosMensuales', JSON.stringify(datos));
+                // console.log('Datos guardados exitosamente.'); // Descomentar para debug
+            } catch (e) {
+                console.error('Error al guardar en localStorage: ', e);
+            }
+        }
+
+
+        function agregarFila(datosFila = null) {
+            const tbody = document.getElementById('tablaBody');
+            const tr = document.createElement('tr');
+            
+            // Usar datos cargados o valores por defecto
+            const abrevInicial = datosFila ? datosFila.abreviatura : "ATEN. VyM";
+            const funcionarioInicial = buscarFuncionario(abrevInicial);
+            const microsInicial = buscarMicros(abrevInicial);
+            const categoriaInicial = buscarCategoria(abrevInicial);
+            const pdvInicial = datosFila ? datosFila.pdv : "";
+            const fechaInicial = datosFila ? datosFila.fecha : new Date().toISOString().slice(0, 10);
+            
+            // FunciÃ³n que se ejecutarÃ¡ despuÃ©s de calcularFila() y calcularTotales()
+            const onInputChange = "calcularFila(this); calcularTotales(); guardarDatos()";
+            const onSelectChange = "actualizarCamposBusqueda(this); guardarDatos()"; // actualizarCamposBusqueda ya llama a calcularTotales y guardarDatos
+
+            tr.innerHTML = `
+                <td class="row-number">${filaContador}</td>
+                <td style="text-align: center;">${funcionarioInicial}</td>
+                <td style="text-align: center;">${microsInicial}</td>
+                <td style="text-align: center;">${categoriaInicial}</td>
+                <td>
+                    <select onchange="${onSelectChange}">
+                        <option value="ATEN. VyM">ATEN. VyM</option>
+                        <option value="At V&B">At V&B</option>
+                        <option value="ATEN. GTE. GENERAL">ATEN. GTE. GENERAL</option>
+                        <option value="ATEN. AyB">ATEN. AyB</option>
+                        <option value="ATEN. DIV. HAB.">ATEN. DIV. HAB.</option>
+                        <option value="At Mant">At Mant</option>
+                        <option value="At Segur">At Segur</option>
+                        <option value="At RRHH">At RRHH</option>
+                        <option value="ATEN. CONTRALORIA">ATEN. CONTRALORIA</option>
+                        <option value="Aten/Compras">Aten/Compras</option>
+                        <option value="At. Sistemas">At. Sistemas</option>
+                        <option value="FUNCION GTE.GENERAL">FUNCION GTE.GENERAL</option>
+                        <option value="Func/Compras">Func/Compras</option>
+                        <option value="F Mant">F Mant</option>
+                        <option value="F RRHH">F RRHH</option>
+                        <option value="FUNC. AYB">FUNC. AYB</option>
+                        <option value="F A&B">F A&B</option>
+                        <option value="FUNC.DIV.HABITAC">FUNC.DIV.HABITAC</option>
+                        <option value="F Segur">F Segur</option>
+                        <option value="F Contral">F Contral</option>
+                        <option value="F Sistemas">F Sistemas</option>
+                        <option value="Escape">Escape</option>
+                        <option value="Paq La Fondue">Paq La Fondue</option>
+                        <option value="Paq Sushi">Paq Sushi</option>
+                        <option value="Paq La Locanda">Paq La Locanda</option>
+                        <option value="Paq Relax">Paq Relax</option>
+                        <option value="Escape LAF">Escape LAF</option>
+                        <option value="Inspire SC">Inspire SC</option>
+                        <option value="Paq Big Box">Paq Big Box</option>
+                        <option value="Celebrate SC">Celebrate SC</option>
+                        <option value="welcome sour">welcome sour</option>
+                        <option value="welcome cerv">welcome cerv</option>
+                        <option value="Welcome LCHA">Welcome LCHA</option>
+                        <option value="F.Spa">F.Spa</option>
+                        <option value="Func/V&M">Func/V&M</option>
+                    </select>
+                </td>
+                <td>
+                    <select onchange="${onInputChange}">
+                        <option value="">Seleccionar...</option>
+                        <option value="La Locanda">La Locanda</option>
+                        <option value="Lobby Bar">Lobby Bar</option>
+                        <option value="Le Cafe">Le Cafe</option>
+                        <option value="Banquets">Banquets</option>
+                    </select>
+                </td>
+                <td><input type="text" placeholder="Nro" onchange="${onInputChange}" value="${datosFila ? datosFila.nroChk : ''}"></td>
+                <td><input type="number" step="0.01" placeholder="0.00" onchange="${onInputChange}" value="${datosFila ? datosFila.importe : ''}"></td>
+                <td class="calculated">0.00</td>
+                <td><input type="number" step="0.01" placeholder="0.00" class="input-alimentos" onchange="${onInputChange}" value="${datosFila ? datosFila.comestibles : ''}"></td>
+                <td><input type="number" step="0.01" placeholder="0.00" class="input-alimentos" onchange="${onInputChange}" value="${datosFila ? datosFila.teCafe : ''}"></td>
+                <td class="calculated category-alimentos">0.00</td>
+                <td><input type="number" step="0.01" placeholder="0.00" class="input-bebidas" onchange="${onInputChange}" value="${datosFila ? datosFila.vinos : ''}"></td>
+                <td><input type="number" step="0.01" placeholder="0.00" class="input-bebidas" onchange="${onInputChange}" value="${datosFila ? datosFila.gaseosas : ''}"></td>
+                <td><input type="number" step="0.01" placeholder="0.00" class="input-bebidas" onchange="${onInputChange}" value="${datosFila ? datosFila.cerveza : ''}"></td>
+                <td><input type="number" step="0.01" placeholder="0.00" class="input-bebidas" onchange="${onInputChange}" value="${datosFila ? datosFila.licores : ''}"></td>
+                <td class="calculated category-bebidas">0.00</td>
+               <td><input type="date" onchange="${onInputChange}" value="${fechaInicial}"></td>
+
+                <td><input type="text" placeholder="Invitado/Motivo" onchange="${onInputChange}" value="${datosFila ? datosFila.invitadoMotivo : ''}"></td>
+
+                <td><input type="text" placeholder="Nombre" onchange="${onInputChange}" value="${datosFila ? datosFila.firmante : ''}"></td>
+
+                <td class="calculated">0.00</td>
+
+                <td><input type="text" placeholder="Observaciones" onchange="${onInputChange}" value="${datosFila ? datosFila.observaciones : ''}"></td>
+
+                <td>
+                    <button class="btn-delete-row" onclick="eliminarFila(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            tbody.appendChild(tr);
+            
+            // Establecer los valores de los selects
+            tr.cells[4].querySelector('select').value = abrevInicial;
+            tr.cells[5].querySelector('select').value = pdvInicial;
+            
+            // Recalcular los campos de texto
+            // Esto asegura que los campos de funcionario/micros/categorÃ­a se actualicen
+            actualizarCamposBusqueda(tr.cells[4].querySelector('select')); 
+            // Esto ejecuta los cÃ¡lculos y rellena las celdas calculadas
+            calcularFila(tr.cells[7].querySelector('input')); 
+
+            filaContador++;
+        }
+
+        function cargarDatos() {
+            try {
+                const datosJSON = localStorage.getItem('consumosMensuales');
+                if (datosJSON) {
+                    const datos = JSON.parse(datosJSON);
+                    document.getElementById('tablaBody').innerHTML = ''; // Limpiar antes de cargar
+                    filaContador = 1; // Resetear el contador
+                    
+                    datos.forEach(datosFila => {
+                        agregarFila(datosFila); // Reutilizar la funciÃ³n agregarFila
+                    });
+
+                    calcularTotales();
+                    // console.log('Datos cargados exitosamente. Total de filas: ' + datos.length); // Descomentar para debug
+                }
+            } catch (e) {
+                console.error('Error al cargar datos de localStorage: ', e);
+            }
+        }
+
+
+        function eliminarFila(btn) {
+            if (confirm('¿Estás seguro de eliminar esta fila?')) {
+                const tr = btn.closest('tr');
+                tr.remove();
+                reindexarFilas();
+                calcularTotales();
+                generarReporteCompleto(true); // Recalcular sin scroll
+                guardarDatos(); // <--- AÃ‘ADIDO para guardar despuÃ©s de borrar
+            }
+        }
+
+        function reindexarFilas() {
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+            filaContador = 1;
+            filas.forEach(tr => {
+                tr.querySelector('.row-number').textContent = filaContador++;
+            });
+        }
+
+        function calcularFila(input) {
+            const fila = input.closest('tr');
+            const importeInput = fila.cells[7].querySelector('input');
+            const dsctoCell = fila.cells[8];
+            const comestiblesInput = fila.cells[9].querySelector('input');
+            const teCafeInput = fila.cells[10].querySelector('input');
+            const totalAlimentoCell = fila.cells[11];
+            const vinosInput = fila.cells[12].querySelector('input');
+            const gaseosasInput = fila.cells[13].querySelector('input');
+            const cervezaInput = fila.cells[14].querySelector('input');
+            const licoresInput = fila.cells[15].querySelector('input');
+            const totalBebidaCell = fila.cells[16];
+            const diferenciaCell = fila.cells[20];
+
+
+            const importe = parseFloat(importeInput.value) || 0;
+            const comestibles = parseFloat(comestiblesInput.value) || 0;
+            const teCafe = parseFloat(teCafeInput.value) || 0;
+            const vinos = parseFloat(vinosInput.value) || 0;
+            const gaseosas = parseFloat(gaseosasInput.value) || 0;
+            const cerveza = parseFloat(cervezaInput.value) || 0;
+            const licores = parseFloat(licoresInput.value) || 0;
+
+            const totalAlimento = comestibles + teCafe;
+            const totalBebida = vinos + gaseosas + cerveza + licores;
+            const totalConsumo = totalAlimento + totalBebida;
+            const totalDscto = totalConsumo;       // TOTAL DSCTO = ALIMENTO + BEBIDA
+            const diferencia = importe - totalDscto;
+
+
+            totalAlimentoCell.textContent = totalAlimento.toFixed(2);
+            totalBebidaCell.textContent = totalBebida.toFixed(2);
+            diferenciaCell.textContent = diferencia.toFixed(2);
+            dsctoCell.textContent = totalDscto.toFixed(2);
+
+            // Resaltar si hay diferencia (excepto si es 0.00 o muy cerca de cero)
+            if (Math.abs(diferencia) > 0.01) {
+                diferenciaCell.style.backgroundColor = '#ffcdd2'; // Rojo claro
+                diferenciaCell.style.color = '#c62828'; // Rojo oscuro
+            } else {
+                diferenciaCell.style.backgroundColor = '#e8f5e9'; // Verde claro (Calculated)
+                diferenciaCell.style.color = '#2e7d32'; // Verde oscuro
+            }
+        }
+
+        function calcularTotales() {
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+            let totalImporte = 0;
+            let totalDscto = 0;
+            let totalComestibles = 0;
+            let totalTeCafe = 0;
+            let totalAlimento = 0;
+            let totalVinos = 0;
+            let totalGaseosas = 0;
+            let totalCerveza = 0;
+            let totalLicores = 0;
+            let totalBebida = 0;
+
+            filas.forEach(fila => {
+                calcularFila(fila.cells[7].querySelector('input')); // Asegurar que la fila estÃ© calculada
+
+                totalImporte += parseFloat(fila.cells[7].querySelector('input').value) || 0;
+                totalDscto += parseFloat(fila.cells[8].textContent) || 0;
+                totalComestibles += parseFloat(fila.cells[9].querySelector('input').value) || 0;
+                totalTeCafe += parseFloat(fila.cells[10].querySelector('input').value) || 0;
+                totalAlimento += parseFloat(fila.cells[11].textContent) || 0;
+                totalVinos += parseFloat(fila.cells[12].querySelector('input').value) || 0;
+                totalGaseosas += parseFloat(fila.cells[13].querySelector('input').value) || 0;
+                totalCerveza += parseFloat(fila.cells[14].querySelector('input').value) || 0;
+                totalLicores += parseFloat(fila.cells[15].querySelector('input').value) || 0;
+                totalBebida += parseFloat(fila.cells[16].textContent) || 0;
+            });
+
+            document.getElementById('totalImporte').textContent = totalImporte.toFixed(2);
+            document.getElementById('totalDscto').textContent = totalDscto.toFixed(2);
+            document.getElementById('totalComestibles').textContent = totalComestibles.toFixed(2);
+            document.getElementById('totalTeCafe').textContent = totalTeCafe.toFixed(2);
+            document.getElementById('totalAlimento').textContent = totalAlimento.toFixed(2);
+            document.getElementById('totalVinos').textContent = totalVinos.toFixed(2);
+            document.getElementById('totalGaseosas').textContent = totalGaseosas.toFixed(2);
+            document.getElementById('totalCerveza').textContent = totalCerveza.toFixed(2);
+            document.getElementById('totalLicores').textContent = totalLicores.toFixed(2);
+            document.getElementById('totalBebida').textContent = totalBebida.toFixed(2);
+            
+            generarReporteCompleto(true); // Recalcular reportes de resumen sin scroll
+        }
+
+        // --- FUNCIÓN MAESTRA para generar ambos reportes ---
+           function generarReporteCompleto(forzado = false) {
+
+            const seccion = document.getElementById('resumenSeccion');
+            const resumen1 = document.getElementById('resumenDinamico');
+            const resumen2 = document.getElementById('resumenDistribucion');
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+                // 1. Validar si hay por lo menos un importe mayor a 0
+            let hayImporte = false;
+            filas.forEach(fila => {
+                const importe = parseFloat(fila.cells[7].querySelector("input")?.value) || 0;
+                if (importe > 0) {
+                    hayImporte = true;
+                }
+            });
+
+            // 2. Si NO hay importes válidos, ocultar resumen y salir
+            if (!hayImporte) {
+                seccion.style.display = 'none';
+                resumen1.style.display = 'none';
+                resumen2.style.display = 'none';
+                return;
+            }
+
+
+            // Si no hay filas, ocultar todo
+            if (filas.length === 0) {
+                seccion.style.display = 'none';
+                return;
+            }
+
+            // SI NO ES FORZADO (es decir, clic del usuario), HACE TOGGLE
+            if (!forzado) {
+                if (seccion.style.display === 'flex') {
+                    seccion.style.display = 'none';
+                    return;
+                }
+            }
+
+            // Generar contenido SIEMPRE pero solo mostrar si no es forzado
+            const { resumenPorCategoria, granTotal } = generarTablaDinamica(filas, true);
+            generarTablaDistribucion(resumenPorCategoria, true);
+
+            // Si es "forzado" (recalculo interno) â†’ no mostrar
+            if (forzado) {
+                return;
+            }
+
+            // Si NO es forzado â†’ mostrar normalmente
+            resumen1.style.display = 'block';
+            resumen2.style.display = 'block';
+            seccion.style.display = 'flex';
+            seccion.scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+
+        // --- FUNCIÓN 1: Resumen por Categoría (Sin IGV) ---
+        function generarTablaDinamica(filas, soloRecalcular) {
+            const resumenPorCategoria = {};
+
+            filas.forEach(fila => {
+                const categoria = fila.cells[3].textContent;
+
+                // Asegurarse de que la fila estÃ© calculada
+                calcularFila(fila.cells[7].querySelector('input'));
+
+                const comestibles = parseFloat(fila.cells[9].querySelector('input').value) || 0;
+                const teCafe = parseFloat(fila.cells[10].querySelector('input').value) || 0;
+                const vinos = parseFloat(fila.cells[12].querySelector('input').value) || 0;
+                const gaseosas = parseFloat(fila.cells[13].querySelector('input').value) || 0;
+                const cerveza = parseFloat(fila.cells[14].querySelector('input').value) || 0;
+                const licores = parseFloat(fila.cells[15].querySelector('input').value) || 0;
+                const totalDscto = parseFloat(fila.cells[8].textContent) || 0;
+
+                const sinIGV = {
+                    comestibles: calcularSinIGV(comestibles),
+                    teCafe: calcularSinIGV(teCafe),
+                    vinos: calcularSinIGV(vinos),
+                    gaseosas: calcularSinIGV(gaseosas),
+                    cerveza: calcularSinIGV(cerveza),
+                    licores: calcularSinIGV(licores),
+                    totalDscto: totalDscto // El descuento ya estÃ¡ aplicado. Si necesitas ajustarlo, usa calcularSinIGV(totalDscto)
+                };
+
+                if (!resumenPorCategoria[categoria]) {
+                    resumenPorCategoria[categoria] = { 
+                        comestibles: 0, teCafe: 0, vinos: 0, gaseosas: 0, cerveza: 0, licores: 0, totalDscto: 0, total: 0 
+                    };
+                }
+
+                resumenPorCategoria[categoria].comestibles += sinIGV.comestibles;
+                resumenPorCategoria[categoria].teCafe += sinIGV.teCafe;
+                resumenPorCategoria[categoria].vinos += sinIGV.vinos;
+                resumenPorCategoria[categoria].gaseosas += sinIGV.gaseosas;
+                resumenPorCategoria[categoria].cerveza += sinIGV.cerveza;
+                resumenPorCategoria[categoria].licores += sinIGV.licores;
+                resumenPorCategoria[categoria].totalDscto += sinIGV.totalDscto;
+
+                // El total de la categoría (Sin IGV) se calcula sumando todos los consumos sin IGV
+                // Y si el totalDscto tambiÃ©n debe ser sin IGV, se ajusta su cÃ¡lculo
+                const totalCategoriaSinIGV = sinIGV.comestibles + sinIGV.teCafe + sinIGV.vinos + sinIGV.gaseosas + sinIGV.cerveza + sinIGV.licores;
+                resumenPorCategoria[categoria].total += totalCategoriaSinIGV;
+            });
+
+            const tbodyResumen = document.getElementById('tablaResumenBody');
+            const tfootResumen = document.getElementById('tablaResumenFoot');
+            tbodyResumen.innerHTML = '';
+            tfootResumen.innerHTML = '';
+            
+            let granTotal = { 
+                comestibles: 0, teCafe: 0, vinos: 0, gaseosas: 0, cerveza: 0, licores: 0, totalDscto: 0, total: 0 
+            };
+
+            for (const categoria in resumenPorCategoria) {
+                const datos = resumenPorCategoria[categoria];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${categoria}</td>
+                    <td class="no-igv-value">${datos.comestibles.toFixed(2)}</td>
+                    <td class="no-igv-value">${datos.teCafe.toFixed(2)}</td>
+                    <td class="no-igv-value">${datos.vinos.toFixed(2)}</td>
+                    <td class="no-igv-value">${datos.gaseosas.toFixed(2)}</td>
+                    <td class="no-igv-value">${datos.cerveza.toFixed(2)}</td>
+                    <td class="no-igv-value">${datos.licores.toFixed(2)}</td>
+                    <td class="no-igv-value">${datos.totalDscto.toFixed(2)}</td>
+                    <td class="no-igv-value" style="font-size: 1.1em; color: #ff4500;">${datos.total.toFixed(2)}</td>
+                `;
+                tbodyResumen.appendChild(tr);
+
+                granTotal.comestibles += datos.comestibles;
+                granTotal.teCafe += datos.teCafe;
+                granTotal.vinos += datos.vinos;
+                granTotal.gaseosas += datos.gaseosas;
+                granTotal.cerveza += datos.cerveza;
+                granTotal.licores += datos.licores;
+                granTotal.totalDscto += datos.totalDscto;
+                granTotal.total += datos.total;
+            }
+
+            const trTotal = document.createElement('tr');
+            trTotal.innerHTML = `
+                <td style="text-align: left; font-size: 1.2em;">TOTAL GENERAL (Sin IGV)</td>
+                <td>${granTotal.comestibles.toFixed(2)}</td>
+                <td>${granTotal.teCafe.toFixed(2)}</td>
+                <td>${granTotal.vinos.toFixed(2)}</td>
+                <td>${granTotal.gaseosas.toFixed(2)}</td>
+                <td>${granTotal.cerveza.toFixed(2)}</td>
+                <td>${granTotal.licores.toFixed(2)}</td>
+                <td>${granTotal.totalDscto.toFixed(2)}</td>
+                <td style="font-size: 1.3em; color: #ff4500;">${granTotal.total.toFixed(2)}</td>
+            `;
+            tfootResumen.appendChild(trTotal);
+
+            return { resumenPorCategoria, granTotal };
+        }
+
+        // --- FUNCIÓN 2: Desglose por Distribución Fija (Tabla 2) ---
+        function generarTablaDistribucion(resumenPorCategoria) {
+            const tbodyDistribucion = document.getElementById('tablaDistribucionBody');
+            const tfootDistribucion = document.getElementById('tablaDistribucionFoot');
+            const tablaDistribucion = document.getElementById('tablaDistribucion');
+            tbodyDistribucion.innerHTML = '';
+            tfootDistribucion.innerHTML = '';
+
+            // 1. Obtener las categorías presentes dinámicamente de la primera tabla
+            const categoriasPresentes = Object.keys(resumenPorCategoria).sort();
+            if (categoriasPresentes.length === 0) {
+                return;
+            }
+
+            // 2. Generar Cabecera Dinámica (THEAD)
+            let theadHTML = `
+                 <thead> 
+                     <tr> 
+                         <th style="text-align: left;">PRODUCTO DISTRIB.</th>`;
+            categoriasPresentes.forEach(cat => {
+                theadHTML += `<th>${cat}</th>`;
+            });
+            theadHTML += `<th style="background: linear-gradient(90deg, #6a1b9a, #9c27b0); color: white; border-bottom: 4px solid #4a148c; font-weight: bold;">TOTAL DISTRIBUIDO</th></tr></thead>`;
+            tablaDistribucion.querySelector('thead').outerHTML = theadHTML; // Reemplazar thead dinámicamente
+
+            // 3. Inicializar Totales
+            let totalesPorCategoria = {};
+            categoriasPresentes.forEach(cat => {
+                totalesPorCategoria[cat] = 0;
+            });
+            let granTotalDistribuido = 0;
+
+            // 4. Generar Filas del Cuerpo
+            productosDistribucion.forEach(producto => {
+                const tr = document.createElement('tr');
+                let filaTotalDistribuido = 0;
+                let trHTML = `<td>${producto}</td>`;
+
+                categoriasPresentes.forEach(categoria => {
+                    const datosCategoria = resumenPorCategoria[categoria];
+                    
+                    // Mapear el nombre del producto a la clave del objeto
+                    let claveProducto;
+                    let porcentaje;
+                    switch (producto) {
+                        case 'Comestibles': claveProducto = 'comestibles'; porcentaje = dbPorcentajesDistribucion.comestibles; break;
+                        case 'Té/Café': claveProducto = 'teCafe'; porcentaje = dbPorcentajesDistribucion.teCafe; break;
+                        case 'Vinos': claveProducto = 'vinos'; porcentaje = dbPorcentajesDistribucion.vinos; break;
+                        case 'Gaseosas/Agua': claveProducto = 'gaseosas'; porcentaje = dbPorcentajesDistribucion.gaseosas; break;
+                        case 'Cerveza': claveProducto = 'cerveza'; porcentaje = dbPorcentajesDistribucion.cerveza; break;
+                        case 'Licores': claveProducto = 'licores'; porcentaje = dbPorcentajesDistribucion.licores; break;
+                        default: claveProducto = ''; porcentaje = 0;
+                    }
+                    
+                    const valorSinIGV = datosCategoria[claveProducto] || 0;
+                    const valorDistribuido = valorSinIGV * porcentaje;
+                    
+                    filaTotalDistribuido += valorDistribuido;
+                    totalesPorCategoria[categoria] += valorDistribuido;
+                    
+                    trHTML += `<td class="distribution-value">${valorDistribuido.toFixed(2)}</td>`;
+                });
+
+                granTotalDistribuido += filaTotalDistribuido;
+                
+                trHTML += `<td class="distribution-value" style="font-size: 1.1em; color: #d81b60;">${filaTotalDistribuido.toFixed(2)}</td>`;
+                tr.innerHTML = trHTML;
+                tbodyDistribucion.appendChild(tr);
+            });
+
+            // 5. Generar Fila de Totales (TFOOT)
+            const trTotalFoot = document.createElement('tr');
+            let footHTML = `<td style="text-align: left; font-size: 1.2em;">TOTAL POR CATEGORÍA</td>`;
+            
+            categoriasPresentes.forEach(cat => {
+                 footHTML += `<td style="font-weight: bold; font-size: 1.1em; color: #6a1b9a;">${totalesPorCategoria[cat].toFixed(2)}</td>`;
+            });
+
+            footHTML += `<td style="font-weight: bold; font-size: 1.2em; color: #880e4f;">${granTotalDistribuido.toFixed(2)}</td>`;
+            trTotalFoot.innerHTML = footHTML;
+            tfootDistribucion.appendChild(trTotalFoot);
+        }
+
+        function limpiarTodo() {
+            if (confirm('¿Estás seguro de eliminar todas las filas? Esto borrará también los datos guardados.')) {
+                document.getElementById('tablaBody').innerHTML = '';
+                document.getElementById('resumenDinamico').style.display = 'none';
+                document.getElementById('resumenDistribucion').style.display = 'none';
+                document.getElementById('resumenSeccion').style.display = 'none';
+                filaContador = 1;
+                calcularTotales();
+                
+                // BORRAR DATOS GUARDADOS
+                localStorage.removeItem('consumosMensuales');
+                alert('Datos eliminados de la tabla y del almacenamiento.');
+            }
+        }
+        
+        // --- FUNCIÓN CORREGIDA PARA EXPORTAR A EXCEL ---
+        function exportarExcel() {
+            // Estilos CSS optimizados para Excel
+            const style = `
+                <style>
+                    body { font-family: Calibri, sans-serif; }
+                    table { 
+                        border-collapse: collapse; 
+                        width: 100%; 
+                        margin-bottom: 20px;
+                        border: 1px solid #000000;
+                    }
+                    
+                    /* Estilos generales para TH */
+                    thead th {
+                        font-weight: bold;
+                        text-align: center;
+                        color: #FFFFFF; 
+                        white-space: normal; 
+                    }
+
+                    /* Celdas del cuerpo, etc. */
+                    tbody td {
+                        border: 1px solid #cccccc;
+                        padding: 8px;
+                        font-size: 10pt;
+                        text-align: center;
+                    }
+                    
+                    tbody tr:nth-child(even) {
+                        background-color: #f8f9ff;
+                    }
+                    
+                    .totals-row {
+                        background-color: #ffe0b2;
+                        font-weight: bold;
+                        font-size: 11pt;
+                        border: 3px solid #ff9800;
+                    }
+
+                    /* ---------------------------------------------------- */
+                    /* ESTILOS CLAVE PARA LAS TABLAS DE RESUMEN (HOJA 2) */
+                    /* ---------------------------------------------------- */
+
+                    /* Cabecera de la Tabla 1 (Resumen Categoría) - AZUL OSCURO */
+                       #tablaResumen thead th {
+                    background-color: #008000; /* Verde Oscuro */
+                    color: #FFFFFF;
+                    font-weight: bold;
+                    font-size: 11pt;
+                    padding: 12px;
+                    border: 2px solid #005000;
+                }
+                    
+                    /* Cabecera de la Tabla 2 (Matriz Distribución) - PÚRPURA */
+                    #tablaDistribucion thead th {
+                        background-color: #6a1b9a; 
+                        color: #FFFFFF; 
+                        font-size: 11pt;
+                        padding: 12px;
+                        border: 2px solid #4a148c;
+                    }
+                    
+                    /* Fila de totales Tabla 1 (Naranja) */
+                    #tablaResumen tfoot tr {
+                        background-color: #ffe0b2;
+                        font-weight: bold;
+                        font-size: 12pt;
+                        border-top: 4px double #e65100;
+                    }
+                    
+                    /* Fila de totales Tabla 2 (Rosa) */
+                    #tablaDistribucion tfoot tr {
+                        background-color: #fce4ec; 
+                        font-weight: bold;
+                        font-size: 12pt;
+                        border-top: 4px double #880e4f;
+                    }
+                    
+                    /* Títulos internos de Hoja 2 (que no deben fusionarse en una celda) */
+                    .sub-report-title {
+                        color: #1e3c72; 
+                        font-size: 14pt; 
+                        padding: 10px; 
+                        background-color: #e6f7ff; 
+                        border-left: 5px solid #0288d1; 
+                        margin-top: 20px; 
+                        margin-bottom: 10px;
+                        font-weight: bold;
+                    }
+                    
+                    .page-break {
+                        page-break-before: always;
+                    }
+                </style>
+            `;
+
+            // 1. Preparar tabla principal limpia (sin botones)
+            const tablaPrincipal = document.getElementById('tablaConsumos').cloneNode(true);
+            tablaPrincipal.querySelectorAll('button, select').forEach(el => {
+                if (el.tagName === 'SELECT') {
+                    const value = el.options[el.selectedIndex].text;
+                    el.outerHTML = value;
+                } else {
+                    el.remove();
+                }
+            });
+            
+            // Reemplazar inputs por sus valores
+            tablaPrincipal.querySelectorAll('input').forEach(input => {
+                const value = input.value || '';
+                input.outerHTML = value;
+            });
+
+            // 2. Aplicar estilos en lÃ­nea en la cabecera principal (Hoja 1)
+            
+            // Fila de encabezado principal (Azul Oscuro)
+            const headerRow1 = tablaPrincipal.querySelector('thead tr:first-child');
+            if (headerRow1) {
+                headerRow1.querySelectorAll('th').forEach(th => {
+                    th.style.backgroundColor = '#1e3c72'; 
+                    th.style.color = '#FFFFFF';
+                    th.style.fontSize = '12pt';
+                    th.style.whiteSpace = 'normal';
+                });
+            }
+
+            // Fila de sub-encabezado (Azul Intermedio)
+            const headerRow2 = tablaPrincipal.querySelector('thead tr:nth-child(2)');
+            if (headerRow2) {
+                headerRow2.querySelectorAll('th').forEach(th => {
+                    th.style.backgroundColor = '#446fa6'; 
+                    th.style.color = '#FFFFFF';
+                    th.style.fontSize = '10pt';
+                });
+            }
+
+
+            // 3. Construir HTML para mÃºltiples hojas
+            let hojas = [];
+            
+            // HOJA 1: Tabla Principal (Registro Detallado)
+            // Se restaura el H2, pero sin el color de fondo para evitar la celda fusionada "fea"
+            hojas.push(`
+                <div class="worksheet">
+                    <h2 style="color: #1e3c72; text-align: center; margin: 0 0 20px 0; font-size: 18pt; padding: 10px;">
+                        📊 CONSUMOS MENSUALES - REGISTRO DETALLADO
+                    </h2>
+                    ${tablaPrincipal.outerHTML}
+                </div>
+            `);
+
+            // HOJA 2: Reportes Combinados (Resumen por CategorÃ­a + Matriz de DistribuciÃ³n)
+            let resumenSheet = '';
+            
+            if (document.getElementById('resumenDinamico').style.display !== 'none') {
+                
+                // El tÃ­tulo principal de la Hoja 2 tambiÃ©n se restaura, pero sin el color de fondo de bloque
+                resumenSheet += `
+                    <div class="worksheet page-break">
+                        <h2 style="color: #1e3c72; text-align: center; margin: 0 0 20px 0; font-size: 18pt; padding: 10px;">
+                            📈 REPORTES DE RESUMEN (VALORES SIN IGV)
+                        </h2>
+                        
+                        <p class="sub-report-title" style="color: #1e3c72; border-left-color: #0288d1;">
+                            1. Resumen por Categoría de Atención (Valores sin IGV)
+                        </p>
+                        ${document.getElementById('resumenContent').innerHTML}
+                        
+                        `;
+
+                if (document.getElementById('resumenDistribucion').style.display !== 'none') {
+                    resumenSheet += `
+                        <p class="sub-report-title" style="color: #6a1b9a; border-left-color: #9c27b0; margin-top: 30px;">
+                            2. Matriz de Distribución de Consumos (Cálculo Fijo)
+                        </p>
+                        <p style="text-align: center; color: #666; font-size: 10pt; margin-bottom: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 5px;">
+                            <strong>Nota:</strong> Los valores mostrados corresponden a la aplicación de porcentajes fijos de distribución sobre los totales sin IGV
+                        </p>
+                        ${document.getElementById('distribucionContent').innerHTML}
+                    `;
+                }
+                
+                resumenSheet += `</div>`;
+                hojas.push(resumenSheet);
+            }
+
+            // 4. ConstrucciÃ³n del HTML y Descarga
+            const html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                      xmlns:x="urn:schemas-microsoft-com:office:excel" 
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                    <meta name="ProgId" content="Excel.Sheet">
+                    <meta name="Generator" content="Microsoft Excel 15">
+                    <title>Reporte de Consumos Mensuales</title>
+                    ${style}
+                </head>
+                <body>
+                    ${hojas.join('\n')}
+                </body>
+                </html>
+            `;
+            
+            // Crear y descargar archivo
+            const blob = new Blob(['\ufeff', html], { 
+                type: 'application/vnd.ms-excel;charset=utf-8' 
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const fecha = new Date().toISOString().slice(0,10);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Consumos_Mensuales_Completo_${fecha}.xls`); 
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            // NotificaciÃ³n de Ã©xito
+            alert('✅ Excel exportado exitosamente con ' + hojas.length + ' hoja(s)');
+        }
+
+        // Llamada inicial para cargar los datos guardados al inicio
+        cargarDatos();
+
+    </script>
+</body>
+</html>
