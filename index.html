@@ -934,8 +934,13 @@
             <div class="modal-body">
                 <!-- URL Apps Script -->
                 <div class="config-url">
-                    <label><i class="fas fa-link"></i>&nbsp; URL de Google Apps Script <span style="font-weight:400; color: var(--text-muted);">(opcional — sincroniza con Google Sheets)</span></label>
-                    <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="guardarUrlConfig()">
+                    <label><i class="fas fa-link"></i>&nbsp; URL de Google Apps Script <span style="font-weight:400; color: var(--text-muted);">(sincroniza con Google Sheets)</span></label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="guardarUrlConfig()" style="flex:1;">
+                        <button class="btn btn-primary btn-sm" onclick="probarConexion()" title="Probar conexión">
+                            <i class="fas fa-plug"></i> Probar
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Abrir / crear mes -->
@@ -1147,35 +1152,72 @@
                 alert('Configura primero la URL de Apps Script en "Gestionar Meses".');
                 return;
             }
-            setEstado('syncing');
+            setEstado('syncing', '⟳ Guardando...');
             const datos = recopilarDatos();
             try {
+                // Content-Type: text/plain evita el preflight CORS de Apps Script
                 const resp = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: 'guardar', mes: mesActual, datos })
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'guardar', mes: mesActual, datos }),
+                    redirect: 'follow'
                 });
-                const data = await resp.json();
+                if (!resp.ok) {
+                    setEstado('error', `✗ HTTP ${resp.status}`);
+                    return;
+                }
+                const text = await resp.text();
+                let data;
+                try { data = JSON.parse(text); } catch(e) {
+                    setEstado('error', '✗ Respuesta inválida del servidor');
+                    console.error('Respuesta no-JSON:', text);
+                    return;
+                }
                 if (data.success) {
-                    setEstado('synced', `☁ Sincronizado (${data.filas} filas)`);
+                    setEstado('synced', `☁ Guardado en Sheets (${data.filas} filas)`);
                 } else {
                     setEstado('error', `✗ ${data.error || 'Error del servidor'}`);
                 }
             } catch (e) {
-                setEstado('error', '✗ Sin conexión al servidor');
-                console.error('Error guardarEnServidor:', e);
+                setEstado('error', '✗ Error de red (ver consola)');
+                console.error('guardarEnServidor error:', e.name, e.message);
             }
         }
 
         async function cargarDesdeServidor(mes) {
             if (!APPS_SCRIPT_URL) return null;
             try {
-                const resp = await fetch(`${APPS_SCRIPT_URL}?action=cargar&mes=${mes}`);
-                const data = await resp.json();
+                const resp = await fetch(
+                    `${APPS_SCRIPT_URL}?action=cargar&mes=${encodeURIComponent(mes)}`,
+                    { redirect: 'follow' }
+                );
+                if (!resp.ok) { console.warn('cargarDesdeServidor HTTP', resp.status); return null; }
+                const text = await resp.text();
+                const data = JSON.parse(text);
                 if (data.success) return data.datos || [];
             } catch (e) {
-                console.error('Error cargarDesdeServidor:', e);
+                console.warn('cargarDesdeServidor error:', e.message);
             }
             return null;
+        }
+
+        async function probarConexion() {
+            setEstado('syncing', '⟳ Probando...');
+            try {
+                const resp = await fetch(
+                    `${APPS_SCRIPT_URL}?action=listarMeses`,
+                    { redirect: 'follow' }
+                );
+                const data = await resp.json();
+                if (data.success !== undefined) {
+                    setEstado('synced', `☁ Conectado (${data.meses ? data.meses.length : 0} meses)`);
+                    return true;
+                }
+            } catch(e) {
+                console.error('probarConexion:', e.message);
+            }
+            setEstado('error', '✗ Sin conexión');
+            return false;
         }
 
         // Extrae datos de la tabla como array de objetos
