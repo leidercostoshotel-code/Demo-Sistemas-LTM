@@ -814,7 +814,7 @@
                 <button class="btn btn-primary" onclick="abrirPanelMeses()">
                     <i class="fas fa-folder-open"></i> Gestionar Meses
                 </button>
-                <button class="btn btn-success" onclick="guardarEnServidor()" id="btnGuardarServidor" style="display:none;">
+                <button class="btn btn-success" onclick="guardarEnServidor()" id="btnGuardarServidor">
                     <i class="fas fa-cloud-upload-alt"></i> Guardar en Sheets
                 </button>
             </div>
@@ -965,7 +965,8 @@
         // ============================================================
         // CONFIGURACIÓN Y ESTADO DE MESES
         // ============================================================
-        let APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || '';
+        const APPS_SCRIPT_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzo8mHRMsvP3XWq2Jm-2YB4k7ojAu3o-5AZfdqA7kirAQYB1bSulptTQjHAJwzP1LrRFg/exec';
+        let APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || APPS_SCRIPT_URL_DEFAULT;
 
         function obtenerMesActual() {
             const hoy = new Date();
@@ -1016,7 +1017,7 @@
         function abrirPanelMeses() {
             document.getElementById('modalMeses').classList.add('active');
             const urlInput = document.getElementById('appsScriptUrl');
-            if (urlInput) urlInput.value = APPS_SCRIPT_URL;
+            if (urlInput) urlInput.value = APPS_SCRIPT_URL || APPS_SCRIPT_URL_DEFAULT;
             const inp = document.getElementById('inputNuevoMes');
             if (inp) inp.value = mesActual;
             actualizarListaMeses();
