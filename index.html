@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         :root {
             --bg-primary: #0f0f1a;
@@ -1830,36 +1831,119 @@
             }
         }
         
-        // --- EXPORTAR A .xlsx CON SheetJS ---
-        function exportarExcel() {
-            const wb = XLSX.utils.book_new();
+        // ============================================================
+        // EXPORTAR A .xlsx PROFESIONAL CON ExcelJS
+        // ============================================================
+
+        // Utilidades de estilo reutilizables
+        const XL = {
+            border: {
+                top:    { style:'thin', color:{ argb:'FF999999' } },
+                bottom: { style:'thin', color:{ argb:'FF999999' } },
+                left:   { style:'thin', color:{ argb:'FF999999' } },
+                right:  { style:'thin', color:{ argb:'FF999999' } }
+            },
+            borderGold: {
+                top:    { style:'thin', color:{ argb:'FFB8860B' } },
+                bottom: { style:'thin', color:{ argb:'FFB8860B' } },
+                left:   { style:'thin', color:{ argb:'FFB8860B' } },
+                right:  { style:'thin', color:{ argb:'FFB8860B' } }
+            },
+            fill(argb) {
+                return { type:'pattern', pattern:'solid', fgColor:{ argb } };
+            },
+            font(opts = {}) {
+                return { name:'Calibri', size: opts.size||10, bold:!!opts.bold, color:{ argb: opts.color||'FF000000' }, italic:!!opts.italic };
+            },
+            numFmt: '#,##0.00',
+            center: { horizontal:'center', vertical:'middle', wrapText:true },
+            left:   { horizontal:'left',   vertical:'middle', wrapText:true },
+            right:  { horizontal:'right',  vertical:'middle' }
+        };
+
+        function styleRow(row, fill, font, alignment, border, numFmt) {
+            row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+                if (fill)      cell.fill      = fill;
+                if (font)      cell.font      = font;
+                if (alignment) cell.alignment  = alignment;
+                if (border)    cell.border     = border;
+                if (numFmt && typeof cell.value === 'number') cell.numFmt = numFmt;
+            });
+        }
+
+        async function exportarExcel() {
             const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+            if (filas.length === 0) { alert('No hay datos para exportar.'); return; }
 
-            if (filas.length === 0) {
-                alert('No hay datos para exportar.');
-                return;
-            }
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'Gestor de Consumos Mensuales';
+            workbook.created = new Date();
 
-            // ── HOJA 1: Registro Detallado ──────────────────────────
+            // ════════════════════════════════════════════════════════
+            // HOJA 1: REGISTRO DETALLADO
+            // ════════════════════════════════════════════════════════
+            const ws1 = workbook.addWorksheet('Registro Detallado', {
+                properties: { tabColor: { argb: 'FF1E3C72' } }
+            });
+
             const cab1 = [
-                '#', 'FUNCIONARIO', 'NOMBRE MICROS', 'CATEGORÍA',
-                'ABREV', 'PUNTO DE VENTA', 'NRO CHK', 'IMPORTE', 'TOTAL DSCTO',
-                'COMESTIBLES', 'TÉ/CAFÉ', 'TOTAL ALIMENTO',
-                'VINOS', 'GASEOSAS/AGUA', 'CERVEZA', 'LICORES', 'TOTAL BEBIDA',
-                'FECHA', 'INVITADO/MOTIVO', 'FIRMANTE', 'DIFERENCIA', 'OBSERVACIONES'
+                '#','FUNCIONARIO','NOMBRE MICROS','CATEGORÍA',
+                'ABREV','PUNTO DE VENTA','NRO CHK','IMPORTE','TOTAL DSCTO',
+                'COMESTIBLES','TÉ/CAFÉ','TOTAL ALIMENTO',
+                'VINOS','GASEOSAS/AGUA','CERVEZA','LICORES','TOTAL BEBIDA',
+                'FECHA','INVITADO/MOTIVO','FIRMANTE','DIFERENCIA','OBSERVACIONES'
+            ];
+            const colCount1 = cab1.length; // 22
+
+            // Anchos de columna
+            ws1.columns = [
+                {width:5},{width:16},{width:22},{width:26},{width:20},{width:16},{width:10},
+                {width:12},{width:13},{width:14},{width:11},{width:15},
+                {width:11},{width:15},{width:11},{width:11},{width:14},
+                {width:13},{width:24},{width:16},{width:12},{width:24}
             ];
 
-            const rows1 = [
-                [`CONSUMOS MENSUALES — ${formatearMes(mesActual)}`],
-                [],
-                cab1
-            ];
+            // ── Fila 1: Título ──
+            const titleRow = ws1.addRow([`CONSUMOS MENSUALES — ${formatearMes(mesActual)}`]);
+            ws1.mergeCells(1, 1, 1, colCount1);
+            titleRow.height = 38;
+            styleRow(titleRow,
+                XL.fill('FF0F0F1A'),
+                XL.font({ size:16, bold:true, color:'FFD4A853' }),
+                { horizontal:'center', vertical:'middle' },
+                XL.borderGold
+            );
 
+            // ── Fila 2: Subtítulo ──
+            const subRow = ws1.addRow([`Generado: ${new Date().toLocaleDateString('es-PE')} | Mes: ${mesActual}`]);
+            ws1.mergeCells(2, 1, 2, colCount1);
+            subRow.height = 22;
+            styleRow(subRow,
+                XL.fill('FF1A1A2E'),
+                XL.font({ size:9, color:'FFA0A0B8', italic:true }),
+                { horizontal:'center', vertical:'middle' },
+                XL.borderGold
+            );
+
+            // ── Fila 3: Cabecera ──
+            const headRow = ws1.addRow(cab1);
+            headRow.height = 30;
+            styleRow(headRow,
+                XL.fill('FF1E3C72'),
+                XL.font({ size:10, bold:true, color:'FFFFFFFF' }),
+                XL.center,
+                XL.border
+            );
+            // Colorear sub-grupos: Alimentos (naranja), Bebidas (verde)
+            [10,11,12].forEach(c => { headRow.getCell(c).fill = XL.fill('FFE65100'); });
+            [13,14,15,16,17].forEach(c => { headRow.getCell(c).fill = XL.fill('FF1B5E20'); });
+
+            // ── Filas de datos ──
+            const num = v => parseFloat(v) || 0;
             filas.forEach((fila, idx) => {
-                const num  = v => parseFloat(v) || 0;
                 const abrev = fila.cells[4].querySelector('select');
                 const pdv   = fila.cells[5].querySelector('select');
-                rows1.push([
+                const dataRow = ws1.addRow([
                     idx + 1,
                     fila.cells[1].textContent.trim(),
                     fila.cells[2].textContent.trim(),
@@ -1883,85 +1967,162 @@
                     num(fila.cells[20].textContent),
                     fila.cells[21].querySelector('input').value,
                 ]);
+
+                const bgColor = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF0F4FF';
+                styleRow(dataRow, XL.fill(bgColor), XL.font({ size:9 }), XL.center, XL.border, XL.numFmt);
+                // Col 1 (#) dorado
+                dataRow.getCell(1).font = XL.font({ size:9, bold:true, color:'FFB8860B' });
+                // Diferencia: rojo si != 0, verde si = 0
+                const dif = num(fila.cells[20].textContent);
+                dataRow.getCell(21).font = XL.font({ size:9, bold:true, color: Math.abs(dif) > 0.01 ? 'FFE74C3C' : 'FF2ECC71' });
             });
 
-            // Fila de totales
-            const g = id => parseFloat(document.getElementById(id).textContent) || 0;
-            rows1.push([
-                'TOTALES', '', '', '', '', '', '',
-                g('totalImporte'), g('totalDscto'),
-                g('totalComestibles'), g('totalTeCafe'), g('totalAlimento'),
-                g('totalVinos'), g('totalGaseosas'), g('totalCerveza'),
-                g('totalLicores'), g('totalBebida'),
-                '', '', '', '', ''
+            // ── Fila de Totales ──
+            const gt = id => parseFloat(document.getElementById(id).textContent) || 0;
+            const totalRow = ws1.addRow([
+                'TOTALES','','','','','','',
+                gt('totalImporte'), gt('totalDscto'),
+                gt('totalComestibles'), gt('totalTeCafe'), gt('totalAlimento'),
+                gt('totalVinos'), gt('totalGaseosas'), gt('totalCerveza'),
+                gt('totalLicores'), gt('totalBebida'),
+                '','','','',''
             ]);
+            totalRow.height = 28;
+            styleRow(totalRow,
+                XL.fill('FFFFF3E0'),
+                XL.font({ size:11, bold:true, color:'FFB8860B' }),
+                XL.center,
+                { top:{style:'double',color:{argb:'FFB8860B'}}, bottom:{style:'double',color:{argb:'FFB8860B'}}, left:XL.border.left, right:XL.border.right },
+                XL.numFmt
+            );
+            totalRow.getCell(1).alignment = { horizontal:'right', vertical:'middle' };
 
-            const ws1 = XLSX.utils.aoa_to_sheet(rows1);
-            ws1['!cols'] = [
-                {wch:4},{wch:14},{wch:20},{wch:24},{wch:18},{wch:14},{wch:10},
-                {wch:10},{wch:11},{wch:13},{wch:10},{wch:14},
-                {wch:10},{wch:14},{wch:10},{wch:10},{wch:13},
-                {wch:12},{wch:22},{wch:14},{wch:11},{wch:22}
-            ];
-            // Merge título
-            ws1['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:21} }];
-            XLSX.utils.book_append_sheet(wb, ws1, 'Registro Detallado');
+            // Autofilter en cabecera
+            ws1.autoFilter = { from: { row:3, column:1 }, to: { row:3, column:colCount1 } };
+            // Congelar cabecera
+            ws1.views = [{ state:'frozen', ySplit:3 }];
 
-            // ── HOJA 2: Resumen por Categoría ───────────────────────
+            // ════════════════════════════════════════════════════════
+            // HOJA 2: RESUMEN POR CATEGORÍA
+            // ════════════════════════════════════════════════════════
             if (document.getElementById('resumenDinamico').style.display !== 'none') {
+                const ws2 = workbook.addWorksheet('Resumen', {
+                    properties: { tabColor: { argb: 'FF006400' } }
+                });
+
                 const cab2 = ['CATEGORÍA','COMESTIBLES','TÉ/CAFÉ','VINOS','GASEOSAS/AGUA','CERVEZA','LICORES','TOTAL DSCTO','TOTAL SIN IGV'];
-                const rows2 = [
-                    [`RESUMEN POR CATEGORÍA (Sin IGV) — ${formatearMes(mesActual)}`],
-                    [],
-                    cab2
-                ];
+                ws2.columns = [{width:32},{width:14},{width:11},{width:11},{width:15},{width:11},{width:11},{width:14},{width:16}];
 
+                // Título
+                const t2 = ws2.addRow([`RESUMEN POR CATEGORÍA (Sin IGV) — ${formatearMes(mesActual)}`]);
+                ws2.mergeCells(1, 1, 1, 9);
+                t2.height = 36;
+                styleRow(t2, XL.fill('FF006400'), XL.font({size:14, bold:true, color:'FFFFFFFF'}), {horizontal:'center',vertical:'middle'}, XL.border);
+
+                ws2.addRow([]); // espacio
+
+                // Cabecera
+                const h2 = ws2.addRow(cab2);
+                h2.height = 28;
+                styleRow(h2, XL.fill('FF1B5E20'), XL.font({size:10, bold:true, color:'FFFFFFFF'}), XL.center, XL.border);
+
+                // Datos
+                let rIdx = 0;
                 document.getElementById('tablaResumenBody').querySelectorAll('tr').forEach(tr => {
-                    rows2.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                    const cells = Array.from(tr.querySelectorAll('td')).map((td, i) =>
                         i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
-                    ));
+                    );
+                    const r = ws2.addRow(cells);
+                    const bg = rIdx % 2 === 0 ? 'FFFFFFFF' : 'FFE8F5E9';
+                    styleRow(r, XL.fill(bg), XL.font({size:10}), XL.center, XL.border, XL.numFmt);
+                    r.getCell(1).alignment = XL.left;
+                    r.getCell(1).font = XL.font({size:10, bold:true, color:'FF1B5E20'});
+                    r.getCell(9).font = XL.font({size:11, bold:true, color:'FFB8860B'});
+                    rIdx++;
                 });
+
+                // Total
                 document.getElementById('tablaResumenFoot').querySelectorAll('tr').forEach(tr => {
-                    rows2.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                    const cells = Array.from(tr.querySelectorAll('td')).map((td, i) =>
                         i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
-                    ));
+                    );
+                    const r = ws2.addRow(cells);
+                    r.height = 28;
+                    styleRow(r, XL.fill('FFFFF3E0'), XL.font({size:11, bold:true, color:'FFB8860B'}), XL.center,
+                        {top:{style:'double',color:{argb:'FFB8860B'}}, bottom:{style:'double',color:{argb:'FFB8860B'}}, left:XL.border.left, right:XL.border.right},
+                        XL.numFmt);
+                    r.getCell(1).alignment = XL.left;
                 });
 
-                const ws2 = XLSX.utils.aoa_to_sheet(rows2);
-                ws2['!cols'] = [{wch:30},{wch:14},{wch:10},{wch:10},{wch:14},{wch:10},{wch:10},{wch:13},{wch:15}];
-                ws2['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:8} }];
-                XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
+                ws2.views = [{ state:'frozen', ySplit:3 }];
             }
 
-            // ── HOJA 3: Distribución ────────────────────────────────
+            // ════════════════════════════════════════════════════════
+            // HOJA 3: DISTRIBUCIÓN
+            // ════════════════════════════════════════════════════════
             if (document.getElementById('resumenDistribucion').style.display !== 'none') {
+                const ws3 = workbook.addWorksheet('Distribución', {
+                    properties: { tabColor: { argb: 'FF6A1B9A' } }
+                });
+
                 const tablaD = document.getElementById('tablaDistribucion');
-                const rows3 = [
-                    [`MATRIZ DE DISTRIBUCIÓN — ${formatearMes(mesActual)}`],
-                    []
-                ];
+                const thCells = tablaD.querySelectorAll('thead th');
+                const colCount3 = thCells.length;
 
-                tablaD.querySelectorAll('thead tr').forEach(tr => {
-                    rows3.push(Array.from(tr.querySelectorAll('th')).map(th => th.textContent.trim()));
-                });
+                // Ancho dinámico
+                ws3.columns = Array.from({ length: colCount3 }, (_, i) => ({ width: i === 0 ? 22 : 18 }));
+
+                // Título
+                const t3 = ws3.addRow([`MATRIZ DE DISTRIBUCIÓN — ${formatearMes(mesActual)}`]);
+                ws3.mergeCells(1, 1, 1, colCount3);
+                t3.height = 36;
+                styleRow(t3, XL.fill('FF4A148C'), XL.font({size:14, bold:true, color:'FFFFFFFF'}), {horizontal:'center',vertical:'middle'}, XL.border);
+
+                ws3.addRow([]);
+
+                // Cabecera
+                const cabArr = Array.from(thCells).map(th => th.textContent.trim());
+                const h3 = ws3.addRow(cabArr);
+                h3.height = 28;
+                styleRow(h3, XL.fill('FF6A1B9A'), XL.font({size:10, bold:true, color:'FFFFFFFF'}), XL.center, XL.border);
+
+                // Datos
+                let dIdx = 0;
                 tablaD.querySelectorAll('tbody tr').forEach(tr => {
-                    rows3.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                    const cells = Array.from(tr.querySelectorAll('td')).map((td, i) =>
                         i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
-                    ));
-                });
-                tablaD.querySelectorAll('tfoot tr').forEach(tr => {
-                    rows3.push(Array.from(tr.querySelectorAll('td')).map((td, i) =>
-                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
-                    ));
+                    );
+                    const r = ws3.addRow(cells);
+                    const bg = dIdx % 2 === 0 ? 'FFFFFFFF' : 'FFF3E5F5';
+                    styleRow(r, XL.fill(bg), XL.font({size:10}), XL.center, XL.border, XL.numFmt);
+                    r.getCell(1).alignment = XL.left;
+                    r.getCell(1).font = XL.font({size:10, bold:true, color:'FF6A1B9A'});
+                    dIdx++;
                 });
 
-                const ws3 = XLSX.utils.aoa_to_sheet(rows3);
-                XLSX.utils.book_append_sheet(wb, ws3, 'Distribución');
+                // Total
+                tablaD.querySelectorAll('tfoot tr').forEach(tr => {
+                    const cells = Array.from(tr.querySelectorAll('td')).map((td, i) =>
+                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
+                    );
+                    const r = ws3.addRow(cells);
+                    r.height = 28;
+                    styleRow(r, XL.fill('FFFCE4EC'), XL.font({size:11, bold:true, color:'FF6A1B9A'}), XL.center,
+                        {top:{style:'double',color:{argb:'FF6A1B9A'}}, bottom:{style:'double',color:{argb:'FF6A1B9A'}}, left:XL.border.left, right:XL.border.right},
+                        XL.numFmt);
+                    r.getCell(1).alignment = XL.left;
+                });
+
+                ws3.views = [{ state:'frozen', ySplit:3 }];
             }
 
-            // ── Descargar ───────────────────────────────────────────
+            // ════════════════════════════════════════════════════════
+            // DESCARGAR
+            // ════════════════════════════════════════════════════════
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const fecha = new Date().toISOString().slice(0, 10);
-            XLSX.writeFile(wb, `Consumos_${mesActual}_${fecha}.xlsx`);
+            saveAs(blob, `Consumos_${mesActual}_${fecha}.xlsx`);
         }
 
         // Inicialización al cargar la página
