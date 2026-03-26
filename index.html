@@ -56,18 +56,6 @@
             margin: 0 auto;
         }
 
-        .top-fixed-panel {
-            position: sticky;
-            top: 0;
-            z-index: 1200;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
-            padding-top: 8px;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-primary) 85%, transparent 100%);
-        }
-
         /* --- Header Premium --- */
         .header {
             background: #1a1a2e;
@@ -77,11 +65,13 @@
             border-radius: var(--radius);
             border: 1px solid var(--border-gold);
             box-shadow: var(--shadow-gold), var(--shadow-heavy);
-            margin-bottom: 0;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
+            top: 8px;
+            z-index: 1200;
+            position: sticky;
             overflow: hidden;
         }
 
@@ -568,12 +558,15 @@
             border-radius: var(--radius);
             border: 1px solid var(--border-gold);
             box-shadow: var(--shadow-gold);
-            margin-bottom: 0;
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            position: sticky;
+            top: 144px;
+            z-index: 1190;
         }
 
         .mes-info {
@@ -801,45 +794,43 @@
 </head>
 <body>
     <div class="container">
-        <div class="top-fixed-panel">
-            <div class="header">
-                <h1>
-                    <i class="fas fa-gem"></i>
-                    Gestor de Consumos Mensuales
-                </h1>
-                <div class="btn-group">
-                    <button class="btn btn-success" onclick="agregarFila()">
-                        <i class="fas fa-plus"></i> Agregar Fila
-                    </button>
-                    <button class="btn btn-primary" onclick="exportarExcel()">
-                        <i class="fas fa-file-excel"></i> Exportar Excel
-                    </button>
-                    <button class="btn btn-primary" style="background: linear-gradient(135deg, #8b1a1a, #c0392b); border-color: rgba(192,57,43,0.5);" onclick="generarReporteCompleto()">
-                        <i class="fas fa-chart-bar"></i> Generar Resumen (Sin IGV)
-                    </button>
-                    <button class="btn btn-danger" onclick="limpiarTodo()">
-                        <i class="fas fa-trash"></i> Limpiar Todo
-                    </button>
-                </div>
+        <div class="header">
+            <h1>
+                <i class="fas fa-gem"></i>
+                Gestor de Consumos Mensuales
+            </h1>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="agregarFila()">
+                    <i class="fas fa-plus"></i> Agregar Fila
+                </button>
+                <button class="btn btn-primary" onclick="exportarExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+                <button class="btn btn-primary" style="background: linear-gradient(135deg, #8b1a1a, #c0392b); border-color: rgba(192,57,43,0.5);" onclick="generarReporteCompleto()">
+                    <i class="fas fa-chart-bar"></i> Generar Resumen (Sin IGV)
+                </button>
+                <button class="btn btn-danger" onclick="limpiarTodo()">
+                    <i class="fas fa-trash"></i> Limpiar Todo
+                </button>
             </div>
+        </div>
 
-            <!-- Barra de mes activo -->
-            <div class="mes-bar">
-                <div class="mes-info">
-                    <span class="mes-badge">
-                        <i class="fas fa-calendar-alt" style="color: var(--gold);"></i>
-                        <span id="mesActualLabel">Cargando...</span>
-                    </span>
-                    <span class="mes-estado local" id="mesEstado">💾 Local</span>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="abrirPanelMeses()">
-                        <i class="fas fa-folder-open"></i> Gestionar Meses
-                    </button>
-                    <button class="btn btn-success" onclick="guardarEnServidor()" id="btnGuardarServidor">
-                        <i class="fas fa-cloud-upload-alt"></i> Guardar en Sheets
-                    </button>
-                </div>
+        <!-- Barra de mes activo -->
+        <div class="mes-bar">
+            <div class="mes-info">
+                <span class="mes-badge">
+                    <i class="fas fa-calendar-alt" style="color: var(--gold);"></i>
+                    <span id="mesActualLabel">Cargando...</span>
+                </span>
+                <span class="mes-estado local" id="mesEstado">💾 Local</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="abrirPanelMeses()">
+                    <i class="fas fa-folder-open"></i> Gestionar Meses
+                </button>
+                <button class="btn btn-success" onclick="guardarEnServidor()" id="btnGuardarServidor">
+                    <i class="fas fa-cloud-upload-alt"></i> Guardar en Sheets
+                </button>
             </div>
         </div>
 
