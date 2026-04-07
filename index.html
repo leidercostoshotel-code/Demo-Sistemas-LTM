@@ -2085,10 +2085,35 @@
                     properties: { tabColor: { argb: 'FF6A1B9A' } }
                 });
 
-                const tablaD = document.getElementById('tablaDistribucion');
-                const thCells = tablaD.querySelectorAll('thead th');
-                const colCount3 = thCells.length;
+                // Calcular datos de distribución directamente desde la tabla principal
+                const filasD = document.getElementById('tablaBody').querySelectorAll('tr');
+                const resumenD = {};
+                filasD.forEach(fila => {
+                    const categoria = fila.cells[3].textContent;
+                    if (!resumenD[categoria]) {
+                        resumenD[categoria] = { comestibles: 0, teCafe: 0, vinos: 0, gaseosas: 0, cerveza: 0, licores: 0 };
+                    }
+                    resumenD[categoria].comestibles += calcularSinIGV(parseFloat(fila.cells[9].querySelector('input').value) || 0);
+                    resumenD[categoria].teCafe      += calcularSinIGV(parseFloat(fila.cells[10].querySelector('input').value) || 0);
+                    resumenD[categoria].vinos       += calcularSinIGV(parseFloat(fila.cells[12].querySelector('input').value) || 0);
+                    resumenD[categoria].gaseosas    += calcularSinIGV(parseFloat(fila.cells[13].querySelector('input').value) || 0);
+                    resumenD[categoria].cerveza     += calcularSinIGV(parseFloat(fila.cells[14].querySelector('input').value) || 0);
+                    resumenD[categoria].licores     += calcularSinIGV(parseFloat(fila.cells[15].querySelector('input').value) || 0);
+                });
+                const categoriasD = Object.keys(resumenD).sort();
+                const claveMap = {
+                    'Comestibles': ['comestibles', dbPorcentajesDistribucion.comestibles],
+                    'Té/Café':     ['teCafe',      dbPorcentajesDistribucion.teCafe],
+                    'Vinos':       ['vinos',       dbPorcentajesDistribucion.vinos],
+                    'Gaseosas/Agua':['gaseosas',   dbPorcentajesDistribucion.gaseosas],
+                    'Cerveza':     ['cerveza',     dbPorcentajesDistribucion.cerveza],
+                    'Licores':     ['licores',     dbPorcentajesDistribucion.licores],
+                };
+                const totCatD = {};
+                categoriasD.forEach(c => { totCatD[c] = 0; });
+                let granTotalD = 0;
 
+                const colCount3 = 1 + categoriasD.length + 1; // producto + categorías + total
                 // Ancho dinámico
                 ws3.columns = Array.from({ length: colCount3 }, (_, i) => ({ width: i === 0 ? 22 : 18 }));
 
@@ -2101,17 +2126,26 @@
                 ws3.addRow([]);
 
                 // Cabecera
-                const cabArr = Array.from(thCells).map(th => th.textContent.trim());
-                const h3 = ws3.addRow(cabArr);
+                const cabArr3 = ['PRODUCTO DISTRIB.', ...categoriasD, 'TOTAL DISTRIBUIDO'];
+                const h3 = ws3.addRow(cabArr3);
                 h3.height = 28;
                 styleRow(h3, XL.fill('FF6A1B9A'), XL.font({size:10, bold:true, color:'FFFFFFFF'}), XL.center, XL.border);
 
-                // Datos
+                // Datos — un row por cada producto de distribución
                 let dIdx = 0;
-                tablaD.querySelectorAll('tbody tr').forEach(tr => {
-                    const cells = Array.from(tr.querySelectorAll('td')).map((td, i) =>
-                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
-                    );
+                productosDistribucion.forEach(producto => {
+                    const [clave, pct] = claveMap[producto] || ['', 0];
+                    let filaTotal = 0;
+                    const cells = [producto];
+                    categoriasD.forEach(cat => {
+                        const val = (resumenD[cat][clave] || 0) * pct;
+                        cells.push(val);
+                        filaTotal += val;
+                        totCatD[cat] += val;
+                    });
+                    cells.push(filaTotal);
+                    granTotalD += filaTotal;
+
                     const r = ws3.addRow(cells);
                     const bg = dIdx % 2 === 0 ? 'FFFFFFFF' : 'FFF3E5F5';
                     styleRow(r, XL.fill(bg), XL.font({size:10}), XL.center, XL.border, XL.numFmt);
@@ -2121,17 +2155,12 @@
                 });
 
                 // Total
-                tablaD.querySelectorAll('tfoot tr').forEach(tr => {
-                    const cells = Array.from(tr.querySelectorAll('td')).map((td, i) =>
-                        i === 0 ? td.textContent.trim() : (parseFloat(td.textContent) || 0)
-                    );
-                    const r = ws3.addRow(cells);
-                    r.height = 28;
-                    styleRow(r, XL.fill('FFFCE4EC'), XL.font({size:11, bold:true, color:'FF6A1B9A'}), XL.center,
-                        {top:{style:'double',color:{argb:'FF6A1B9A'}}, bottom:{style:'double',color:{argb:'FF6A1B9A'}}, left:XL.border.left, right:XL.border.right},
-                        XL.numFmt);
-                    r.getCell(1).alignment = XL.left;
-                });
+                const totalRowD = ws3.addRow(['TOTAL POR CATEGORÍA', ...categoriasD.map(c => totCatD[c]), granTotalD]);
+                totalRowD.height = 28;
+                styleRow(totalRowD, XL.fill('FFFCE4EC'), XL.font({size:11, bold:true, color:'FF6A1B9A'}), XL.center,
+                    {top:{style:'double',color:{argb:'FF6A1B9A'}}, bottom:{style:'double',color:{argb:'FF6A1B9A'}}, left:XL.border.left, right:XL.border.right},
+                    XL.numFmt);
+                totalRowD.getCell(1).alignment = XL.left;
 
                 ws3.views = [{ state:'frozen', ySplit:3 }];
             }
