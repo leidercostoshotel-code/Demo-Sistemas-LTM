@@ -1593,8 +1593,40 @@
             document.getElementById('totalCerveza').textContent = totalCerveza.toFixed(2);
             document.getElementById('totalLicores').textContent = totalLicores.toFixed(2);
             document.getElementById('totalBebida').textContent = totalBebida.toFixed(2);
-            
+
+            verificarDuplicadosChk();
+
             generarReporteCompleto(true); // Recalcular reportes de resumen sin scroll
+        }
+
+        function verificarDuplicadosChk() {
+            const filas = document.getElementById('tablaBody').querySelectorAll('tr');
+            const conteo = {};
+
+            filas.forEach(fila => {
+                const input = fila.cells[6].querySelector('input');
+                if (!input) return;
+                const valor = input.value.trim();
+                if (valor === '') return;
+                conteo[valor] = (conteo[valor] || 0) + 1;
+            });
+
+            filas.forEach(fila => {
+                const input = fila.cells[6].querySelector('input');
+                if (!input) return;
+                const valor = input.value.trim();
+                if (valor !== '' && conteo[valor] > 1) {
+                    input.style.backgroundColor = 'rgba(231, 76, 60, 0.35)';
+                    input.style.color = '#e74c3c';
+                    input.style.fontWeight = 'bold';
+                    input.title = 'Nro Chk duplicado - no pueden haber duplicados';
+                } else {
+                    input.style.backgroundColor = '';
+                    input.style.color = '';
+                    input.style.fontWeight = '';
+                    input.title = '';
+                }
+            });
         }
 
         // --- FUNCIÓN MAESTRA para generar ambos reportes ---
