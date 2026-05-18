@@ -1361,6 +1361,7 @@
             
             // FunciÃ³n que se ejecutarÃ¡ despuÃ©s de calcularFila() y calcularTotales()
             const onInputChange = "calcularFila(this); calcularTotales(); guardarDatos()";
+            const onTextChange = "this.value=this.value.toUpperCase(); calcularFila(this); calcularTotales(); guardarDatos()";
             const onSelectChange = "actualizarCamposBusqueda(this); guardarDatos()"; // actualizarCamposBusqueda ya llama a calcularTotales y guardarDatos
 
             tr.innerHTML = `
@@ -1417,7 +1418,7 @@
                         <option value="Banquets">Banquets</option>
                     </select>
                 </td>
-                <td><input type="text" placeholder="Nro" onchange="${onInputChange}" value="${datosFila ? datosFila.nroChk : ''}"></td>
+                <td><input type="text" placeholder="Nro" oninput="${onTextChange}" style="text-transform:uppercase" value="${datosFila ? datosFila.nroChk : ''}"></td>
                 <td><input type="number" step="0.01" placeholder="0.00" onchange="${onInputChange}" value="${datosFila ? datosFila.importe : ''}"></td>
                 <td class="calculated">0.00</td>
                 <td><input type="number" step="0.01" placeholder="0.00" class="input-alimentos" onchange="${onInputChange}" value="${datosFila ? datosFila.comestibles : ''}"></td>
@@ -1430,13 +1431,13 @@
                 <td class="calculated category-bebidas">0.00</td>
                <td><input type="date" onchange="${onInputChange}" value="${fechaInicial}"></td>
 
-                <td><input type="text" placeholder="Invitado/Motivo" onchange="${onInputChange}" value="${datosFila ? datosFila.invitadoMotivo : ''}"></td>
+                <td><input type="text" placeholder="Invitado/Motivo" oninput="${onTextChange}" style="text-transform:uppercase" value="${datosFila ? datosFila.invitadoMotivo : ''}"></td>
 
-                <td><input type="text" placeholder="Nombre" onchange="${onInputChange}" value="${datosFila ? datosFila.firmante : ''}"></td>
+                <td><input type="text" placeholder="Nombre" oninput="${onTextChange}" style="text-transform:uppercase" value="${datosFila ? datosFila.firmante : ''}"></td>
 
                 <td class="calculated">0.00</td>
 
-                <td><input type="text" placeholder="Observaciones" onchange="${onInputChange}" value="${datosFila ? datosFila.observaciones : ''}"></td>
+                <td><input type="text" placeholder="Observaciones" oninput="${onTextChange}" style="text-transform:uppercase" value="${datosFila ? datosFila.observaciones : ''}"></td>
 
                 <td>
                     <button class="btn-delete-row" onclick="eliminarFila(this)">
