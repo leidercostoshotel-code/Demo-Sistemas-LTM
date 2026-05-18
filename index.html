@@ -1168,9 +1168,9 @@
         // ============================================================
         // INTEGRACIÓN APPS SCRIPT
         // ============================================================
-        async function guardarEnServidor() {
+        async function guardarEnServidor(silencioso = false) {
             if (!APPS_SCRIPT_URL) {
-                alert('Configura primero la URL de Apps Script en "Gestionar Meses".');
+                if (!silencioso) alert('Configura primero la URL de Apps Script en "Gestionar Meses".');
                 return;
             }
             setEstado('syncing', '⟳ Guardando...');
@@ -1333,9 +1333,17 @@
         }
         
         // --- FUNCIONES DE PERSISTENCIA (localStorage, por mes) ---
+        let _autosaveTimer = null;
+
         function guardarDatos() {
             recopilarYGuardarLocal();
-            setEstado('saved');
+            if (APPS_SCRIPT_URL) {
+                setEstado('syncing', '⟳ Guardando...');
+                clearTimeout(_autosaveTimer);
+                _autosaveTimer = setTimeout(() => guardarEnServidor(true), 3000);
+            } else {
+                setEstado('saved');
+            }
         }
 
 
