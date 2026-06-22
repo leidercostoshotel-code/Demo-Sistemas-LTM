@@ -12,6 +12,7 @@
     <style>
         :root {
             --bg-primary: #0f0f1a;
+            --bg-screen: #d9dade; /* "blanco oscuro" (off-white) para el fondo de pantalla */
             --bg-secondary: #1a1a2e;
             --bg-card: rgba(26, 26, 46, 0.85);
             --bg-glass: rgba(255, 255, 255, 0.03);
@@ -41,7 +42,7 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
+            background: var(--bg-screen);
             background-image:
                 radial-gradient(ellipse at 20% 50%, rgba(212, 168, 83, 0.04) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 20%, rgba(52, 152, 219, 0.03) 0%, transparent 50%),
@@ -250,7 +251,7 @@
 
         tbody tr {
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            transition: all 0.3s ease;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         tbody tr:nth-child(even) {
@@ -292,7 +293,7 @@
             font-family: 'Inter', sans-serif;
             background: rgba(255, 255, 255, 0.04);
             color: var(--text-primary);
-            transition: all 0.3s ease;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
         }
 
         td input:focus, td select:focus {
@@ -1322,14 +1323,19 @@
             return dbCategoria[abreviatura] || "NO ENCONTRADO";
         }
 
-        function actualizarCamposBusqueda(selectAbrev) {
+        // Solo actualiza las celdas de búsqueda (funcionario/micros/categoría) de la fila.
+        // Es barato (O(1)) y no dispara recálculo global ni guardado.
+        function actualizarCeldasLookup(selectAbrev) {
             const fila = selectAbrev.closest('tr');
             const abreviatura = selectAbrev.value;
             fila.cells[1].textContent = buscarFuncionario(abreviatura);
             fila.cells[2].textContent = buscarMicros(abreviatura);
             fila.cells[3].textContent = buscarCategoria(abreviatura);
-            calcularTotales();
-            guardarDatos(); // <--- AÃ‘ADIDO
+        }
+
+        function actualizarCamposBusqueda(selectAbrev) {
+            actualizarCeldasLookup(selectAbrev);
+            programarActualizacion(); // recálculo global + guardado (agrupado)
         }
         
         // --- FUNCIONES DE PERSISTENCIA (localStorage, por mes) ---
@@ -1346,8 +1352,26 @@
             }
         }
 
+        // --- Utilidad: debounce (agrupa llamadas rápidas en una sola) ---
+        function debounce(fn, delay) {
+            let timer = null;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
 
-        function agregarFila(datosFila = null) {
+        // Recalcula totales/reportes y guarda, pero agrupando las ráfagas de
+        // tecleo en una sola pasada. Con muchas filas esto evita que la tabla
+        // se ponga lenta: el cálculo global pesado corre una vez al dejar de
+        // escribir, no en cada tecla.
+        const programarActualizacion = debounce(function () {
+            calcularTotales();
+            guardarDatos();
+        }, 250);
+
+
+        function agregarFila(datosFila = null, recalcular = true) {
             const tbody = document.getElementById('tablaBody');
             const tr = document.createElement('tr');
             
@@ -1359,10 +1383,14 @@
             const pdvInicial = datosFila ? datosFila.pdv : "";
             const fechaInicial = datosFila ? datosFila.fecha : new Date().toISOString().slice(0, 10);
             
-            // FunciÃ³n que se ejecutarÃ¡ despuÃ©s de calcularFila() y calcularTotales()
-            const onInputChange = "calcularFila(this); calcularTotales(); guardarDatos()";
-            const onTextChange = "this.value=this.value.toUpperCase(); calcularFila(this); calcularTotales(); guardarDatos()";
-            const onSelectChange = "actualizarCamposBusqueda(this); guardarDatos()"; // actualizarCamposBusqueda ya llama a calcularTotales y guardarDatos
+            // Handlers de los campos:
+            // - calcularFila(this) actualiza SOLO esta fila (barato) -> feedback inmediato.
+            // - programarActualizacion() agrupa el recálculo global + guardado (debounce),
+            //   evitando recorrer todas las filas en cada tecla cuando hay muchas líneas.
+            const onInputChange = "calcularFila(this); programarActualizacion()";
+            // Los campos de texto no afectan los cálculos de la fila: solo mayúsculas + guardado/recálculo agrupado.
+            const onTextChange = "this.value=this.value.toUpperCase(); programarActualizacion()";
+            const onSelectChange = "actualizarCamposBusqueda(this)"; // ya programa recálculo + guardado
 
             tr.innerHTML = `
                 <td class="row-number">${filaContador}</td>
@@ -1447,18 +1475,25 @@
             `;
 
             tbody.appendChild(tr);
-            
+
             // Establecer los valores de los selects
             tr.cells[4].querySelector('select').value = abrevInicial;
             tr.cells[5].querySelector('select').value = pdvInicial;
-            
-            // Recalcular los campos de texto
-            // Esto asegura que los campos de funcionario/micros/categorÃ­a se actualicen
-            actualizarCamposBusqueda(tr.cells[4].querySelector('select')); 
-            // Esto ejecuta los cÃ¡lculos y rellena las celdas calculadas
-            calcularFila(tr.cells[7].querySelector('input')); 
+
+            // Rellenar funcionario/micros/categoría y los cálculos SOLO de esta fila,
+            // sin disparar el recálculo global (eso lo decide el llamador).
+            actualizarCeldasLookup(tr.cells[4].querySelector('select'));
+            calcularFila(tr.cells[7].querySelector('input'));
 
             filaContador++;
+
+            // Al agregar una fila suelta (botón) recalculamos y guardamos una vez.
+            // En carga masiva (recalcular=false) el llamador hace UN solo calcularTotales()
+            // al final, evitando el costo O(n²) de recalcular todo por cada fila.
+            if (recalcular) {
+                calcularTotales();
+                guardarDatos();
+            }
         }
 
         async function cargarDatos() {
@@ -1491,8 +1526,9 @@
             // 3. Poblar tabla
             document.getElementById('tablaBody').innerHTML = '';
             filaContador = 1;
-            datos.forEach(datosFila => agregarFila(datosFila));
-            calcularTotales();
+            // Carga masiva: NO recalcular por cada fila (evita O(n²) con muchas líneas).
+            datos.forEach(datosFila => agregarFila(datosFila, false));
+            calcularTotales(); // un solo recálculo global al final
 
             // 4. Mostrar/ocultar botón servidor
             const btn = document.getElementById('btnGuardarServidor');
@@ -1505,9 +1541,8 @@
                 const tr = btn.closest('tr');
                 tr.remove();
                 reindexarFilas();
-                calcularTotales();
-                generarReporteCompleto(true); // Recalcular sin scroll
-                guardarDatos(); // <--- AÃ‘ADIDO para guardar despuÃ©s de borrar
+                calcularTotales(); // ya regenera el reporte internamente
+                guardarDatos();
             }
         }
 
@@ -1702,9 +1737,8 @@
             filas.forEach(fila => {
                 const categoria = fila.cells[3].textContent;
 
-                // Asegurarse de que la fila estÃ© calculada
-                calcularFila(fila.cells[7].querySelector('input'));
-
+                // Las celdas calculadas ya están actualizadas por calcularTotales()
+                // (que corre justo antes), así que aquí solo leemos los valores.
                 const comestibles = parseFloat(fila.cells[9].querySelector('input').value) || 0;
                 const teCafe = parseFloat(fila.cells[10].querySelector('input').value) || 0;
                 const vinos = parseFloat(fila.cells[12].querySelector('input').value) || 0;
