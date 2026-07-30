@@ -686,6 +686,222 @@
         .modal-body::-webkit-scrollbar-track { background: var(--bg-secondary); }
         .modal-body::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
 
+        .modal-footer {
+            padding: 16px 28px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.18);
+        }
+
+        .modal-box-wide { max-width: 780px; }
+
+        /* --- Resultado de la importación desde Excel --- */
+        .import-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .import-stat {
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-glass);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .import-stat::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 3px;
+            background: var(--text-muted);
+        }
+
+        .import-stat .cifra {
+            font-size: 1.7em;
+            font-weight: 700;
+            line-height: 1.1;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .import-stat .rotulo {
+            font-size: 0.74em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-top: 4px;
+        }
+
+        .import-stat.ok::before   { background: var(--accent-emerald); }
+        .import-stat.ok .cifra    { color: var(--accent-emerald); }
+        .import-stat.warn::before { background: var(--gold); }
+        .import-stat.warn .cifra  { color: var(--gold); }
+        .import-stat.info::before { background: var(--accent-sapphire); }
+        .import-stat.info .cifra  { color: var(--accent-sapphire); }
+        .import-stat.bad::before  { background: var(--accent-ruby); }
+        .import-stat.bad .cifra   { color: var(--accent-ruby); }
+
+        .import-nota {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            border-radius: var(--radius-sm);
+            padding: 11px 14px;
+            font-size: 0.86em;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-glass);
+            color: var(--text-secondary);
+        }
+
+        .import-nota i { margin-top: 2px; }
+        .import-nota.ok   { border-color: rgba(46,204,113,0.35);  background: rgba(46,204,113,0.07);  color: #b8ecce; }
+        .import-nota.ok i { color: var(--accent-emerald); }
+        .import-nota.info i { color: var(--accent-sapphire); }
+
+        .import-titulo-seccion {
+            font-size: 0.78em;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--gold);
+            font-weight: 700;
+            margin: 22px 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .import-subtexto {
+            font-size: 0.83em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .fix-item {
+            border: 1px solid rgba(212,168,83,0.28);
+            border-left: 3px solid var(--gold);
+            border-radius: var(--radius-sm);
+            padding: 13px 15px;
+            margin-bottom: 11px;
+            background: rgba(212,168,83,0.05);
+            transition: border-color 0.25s, background 0.25s;
+        }
+
+        .fix-item.resuelto {
+            border-color: rgba(46,204,113,0.35);
+            border-left-color: var(--accent-emerald);
+            background: rgba(46,204,113,0.06);
+        }
+
+        .fix-item-top {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .fix-chip {
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            background: rgba(212,168,83,0.16);
+            color: var(--gold-light);
+            border: 1px solid var(--border-gold);
+            white-space: nowrap;
+        }
+
+        .fix-chip.fila {
+            background: rgba(52,152,219,0.14);
+            color: #9fd0ef;
+            border-color: rgba(52,152,219,0.4);
+        }
+
+        .fix-chip.listo {
+            background: rgba(46,204,113,0.16);
+            color: #7ee2a8;
+            border-color: rgba(46,204,113,0.45);
+            margin-left: auto;
+        }
+
+        .fix-valor {
+            font-size: 0.87em;
+            color: var(--text-secondary);
+        }
+
+        .fix-valor b {
+            color: var(--accent-ruby);
+            font-weight: 600;
+            background: rgba(231,76,60,0.1);
+            padding: 1px 7px;
+            border-radius: 5px;
+        }
+
+        .fix-item-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .fix-item-control label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            min-width: 74px;
+        }
+
+        .fix-item-control select,
+        .fix-item-control input {
+            flex: 1;
+            min-width: 190px;
+            padding: 8px 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.88em;
+        }
+
+        .fix-item-control select:focus,
+        .fix-item-control input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212,168,83,0.12);
+        }
+
+        .fix-ver-fila {
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            padding: 7px 11px;
+            font-size: 0.78em;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .fix-ver-fila:hover { border-color: var(--gold); color: var(--gold-light); }
+
+        @keyframes destelloFila {
+            0%, 100% { background-color: transparent; }
+            30%      { background-color: rgba(212,168,83,0.32); }
+        }
+
+        .fila-destacada > td { animation: destelloFila 1.6s ease-in-out 2; }
+
         .config-url {
             padding: 14px 16px;
             background: rgba(52,152,219,0.06);
@@ -817,6 +1033,9 @@
                         <i class="fas fa-file-import"></i> Importar Excel
                     </button>
                     <input type="file" id="inputImportarExcel" accept=".xlsx,.xlsm" style="display: none;" onchange="importarExcel(this)">
+                    <button class="btn btn-primary" id="btnCorreccionesPendientes" style="display: none; background: linear-gradient(135deg, #8a6d1f, #d4a853); border-color: var(--border-gold); color: #1a1a2e;" onclick="reabrirModalImportacion()" title="Volver al panel de correcciones de la última importación">
+                        <i class="fas fa-triangle-exclamation"></i> <span id="btnCorreccionesTexto">Correcciones pendientes</span>
+                    </button>
                     <button class="btn btn-primary" style="background: linear-gradient(135deg, #8b1a1a, #c0392b); border-color: rgba(192,57,43,0.5);" onclick="generarReporteCompleto()">
                         <i class="fas fa-chart-bar"></i> Generar Resumen (Sin IGV)
                     </button>
@@ -950,6 +1169,18 @@
         </div>
     </div>
 
+    <!-- Modal: Resultado de la importación desde Excel -->
+    <div class="modal-overlay" id="modalImportacion">
+        <div class="modal-box modal-box-wide">
+            <div class="modal-header">
+                <h2 id="importTitulo"><i class="fas fa-file-import"></i> Resultado de la importación</h2>
+                <button class="modal-close" onclick="cerrarModalImportacion()" title="Cerrar"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="importCuerpo"></div>
+            <div class="modal-footer" id="importPie"></div>
+        </div>
+    </div>
+
     <!-- Modal: Gestión de Meses -->
     <div class="modal-overlay" id="modalMeses">
         <div class="modal-box">
@@ -1062,6 +1293,7 @@
         document.addEventListener('click', function(e) {
             const overlay = document.getElementById('modalMeses');
             if (e.target === overlay) cerrarPanelMeses();
+            if (e.target === document.getElementById('modalImportacion')) cerrarModalImportacion();
         });
 
         // ============================================================
@@ -2171,6 +2403,10 @@
                             firmante:       firmante,
                             observaciones:  ''
                         },
+                        // Texto original del archivo, para mostrarlo en el panel de correcciones.
+                        pdvTexto:       pdvTexto,
+                        abrevTexto:     abrevTexto,
+                        nroChkTexto:    nroChk,
                         sinChk:         !nroChk,
                         pdvSinMapear:   !!pdvTexto && !pdvMapeado,
                         abrevSinMapear: !!abrevTexto && !abrevMapeada,
@@ -2179,48 +2415,255 @@
                     });
                 });
 
+                const descartadas = duplicadasEnArchivo + duplicadasEnTabla;
+
                 if (nuevasFilas.length === 0) {
                     setEstado('saved');
-                    const totalDuplicadas = duplicadasEnArchivo + duplicadasEnTabla;
-                    alert(totalDuplicadas
-                        ? `No se importó ninguna fila: los ${totalDuplicadas} Nro Chk del archivo ya estaban registrados o venían repetidos.`
-                        : 'No se encontraron filas con datos para importar.\n\nRevisa que la información empiece en la columna A y que la primera hoja del archivo sea la correcta.');
+                    mostrarResultadoImportacion({
+                        importadas: 0, duplicadasEnArchivo, duplicadasEnTabla, omitidas,
+                        sinChk: 0, fueraDelMes: 0, problemas: [],
+                        vacio: descartadas === 0
+                    });
                     return;
                 }
 
                 // Se agregan AL FINAL, después de las filas que ya existen.
                 // recalcular=false: un solo recálculo global al terminar (evita O(n²)).
-                nuevasFilas.forEach(f => agregarFila(f.datos, false));
+                const tbody = document.getElementById('tablaBody');
+                nuevasFilas.forEach(f => {
+                    agregarFila(f.datos, false);
+                    f.tr = tbody.lastElementChild; // se guarda para poder corregirla desde el panel
+                });
 
                 calcularTotales();
                 guardarDatos();
 
-                const avisos = [];
+                // Lista de correcciones pendientes que se ofrecen en el panel de resultado.
+                const problemas = [];
+                nuevasFilas.forEach(f => {
+                    if (f.pdvSinMapear)   problemas.push({ tipo: 'pdv',   tr: f.tr, valor: f.pdvTexto,   chk: f.nroChkTexto });
+                    if (f.abrevSinMapear) problemas.push({ tipo: 'abrev', tr: f.tr, valor: f.abrevTexto, chk: f.nroChkTexto });
+                    if (f.sinFecha)       problemas.push({ tipo: 'fecha', tr: f.tr, valor: '',           chk: f.nroChkTexto });
+                });
+
                 const contar = (prop) => nuevasFilas.filter(f => f[prop]).length;
-                const pdvSinMapear   = contar('pdvSinMapear');
-                const abrevSinMapear = contar('abrevSinMapear');
-                const fueraDelMes    = contar('fueraDelMes');
-                const sinFecha       = contar('sinFecha');
-                const sinChk         = contar('sinChk');
-
-                if (duplicadasEnArchivo) avisos.push(`• ${duplicadasEnArchivo} fila(s) descartadas por Nro Chk repetido dentro del archivo.`);
-                if (duplicadasEnTabla)   avisos.push(`• ${duplicadasEnTabla} fila(s) descartadas porque su Nro Chk ya estaba en la tabla.`);
-                if (sinChk)              avisos.push(`• ${sinChk} fila(s) sin Nro Chk: se importan siempre, porque no hay con qué compararlas.`);
-                if (pdvSinMapear)   avisos.push(`• ${pdvSinMapear} fila(s) con Punto de Venta fuera de la lista del sistema.`);
-                if (abrevSinMapear) avisos.push(`• ${abrevSinMapear} fila(s) con ABREV fuera de la lista (aparecen como "NO ENCONTRADO").`);
-                if (sinFecha)       avisos.push(`• ${sinFecha} fila(s) sin fecha válida.`);
-                if (fueraDelMes)    avisos.push(`• ${fueraDelMes} fila(s) con fecha de otro mes distinto a ${formatearMes(mesActual)}.`);
-                if (omitidas)       avisos.push(`• ${omitidas} fila(s) vacías omitidas.`);
-
-                alert(
-                    `Se importaron ${nuevasFilas.length} fila(s) al final de la tabla.\n` +
-                    (avisos.length ? `\nRevisar:\n${avisos.join('\n')}` : '\nTodos los datos se mapearon correctamente.')
-                );
+                mostrarResultadoImportacion({
+                    importadas: nuevasFilas.length,
+                    duplicadasEnArchivo, duplicadasEnTabla, omitidas,
+                    sinChk: contar('sinChk'),
+                    fueraDelMes: contar('fueraDelMes'),
+                    problemas: problemas
+                });
             } catch (error) {
                 console.error('Error al importar Excel:', error);
                 setEstado('error');
                 alert(`No se pudo leer el archivo.\n\nDetalle: ${error.message}\n\nAsegúrate de que sea un archivo .xlsx o .xlsm válido.`);
             }
+        }
+
+        // ============================================================
+        // PANEL DE RESULTADO DE LA IMPORTACIÓN
+        // ============================================================
+        let _problemasImportacion = [];
+
+        function escaparHtml(texto) {
+            return String(texto == null ? '' : texto).replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+            ));
+        }
+
+        function cerrarModalImportacion() {
+            document.getElementById('modalImportacion').classList.remove('active');
+            actualizarBotonCorrecciones();
+        }
+
+        function reabrirModalImportacion() {
+            if (!_problemasImportacion.length) return;
+            document.getElementById('modalImportacion').classList.add('active');
+        }
+
+        // El botón de la cabecera permite volver al panel mientras queden
+        // correcciones sin aplicar (por ejemplo tras pulsar "Ver fila").
+        function actualizarBotonCorrecciones() {
+            const btn = document.getElementById('btnCorreccionesPendientes');
+            if (!btn) return;
+            const pendientes = _problemasImportacion.filter(p => p.tr && p.tr.isConnected).length;
+            btn.style.display = pendientes ? 'inline-flex' : 'none';
+            const txt = document.getElementById('btnCorreccionesTexto');
+            if (txt) txt.textContent = `Correcciones pendientes (${pendientes})`;
+        }
+
+        // Lleva la vista hasta una fila de la tabla y la resalta un momento.
+        function irAFilaImportada(indice) {
+            const problema = _problemasImportacion[indice];
+            if (!problema || !problema.tr.isConnected) return;
+            cerrarModalImportacion();
+            problema.tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            problema.tr.classList.remove('fila-destacada');
+            void problema.tr.offsetWidth; // reinicia la animación
+            problema.tr.classList.add('fila-destacada');
+            setTimeout(() => problema.tr.classList.remove('fila-destacada'), 3600);
+        }
+
+        function mostrarResultadoImportacion(resumen) {
+            _problemasImportacion = resumen.problemas || [];
+
+            const descartadas = resumen.duplicadasEnArchivo + resumen.duplicadasEnTabla;
+            const conAviso = _problemasImportacion.length;
+
+            const titulo = document.getElementById('importTitulo');
+            const hayError = resumen.importadas === 0;
+            titulo.innerHTML = hayError
+                ? '<i class="fas fa-circle-exclamation" style="color: var(--accent-ruby);"></i> No se importó ninguna fila'
+                : (conAviso
+                    ? '<i class="fas fa-triangle-exclamation" style="color: var(--gold);"></i> Importación con datos por revisar'
+                    : '<i class="fas fa-circle-check" style="color: var(--accent-emerald);"></i> Importación completada');
+
+            // ── Tarjetas de resumen ──
+            const tarjetas = [
+                { n: resumen.importadas, rot: 'Filas importadas', clase: resumen.importadas ? 'ok' : 'bad' }
+            ];
+            if (descartadas) tarjetas.push({ n: descartadas, rot: 'Descartadas por Nro Chk repetido', clase: 'info' });
+            if (conAviso)    tarjetas.push({ n: conAviso, rot: 'Datos por corregir', clase: 'warn' });
+            if (resumen.omitidas) tarjetas.push({ n: resumen.omitidas, rot: 'Filas vacías omitidas', clase: 'info' });
+
+            let html = '<div class="import-stats">' + tarjetas.map(t => `
+                <div class="import-stat ${t.clase}">
+                    <div class="cifra">${t.n}</div>
+                    <div class="rotulo">${t.rot}</div>
+                </div>`).join('') + '</div>';
+
+            // ── Notas informativas ──
+            const nota = (clase, icono, texto) =>
+                `<div class="import-nota ${clase}"><i class="fas ${icono}"></i><div>${texto}</div></div>`;
+
+            if (hayError) {
+                html += resumen.vacio
+                    ? nota('', 'fa-circle-info', 'No se encontraron filas con datos. Revisa que la información empiece en la columna <b>A</b> y que los datos estén en la <b>primera hoja</b> del archivo.')
+                    : nota('', 'fa-copy', `Los <b>${descartadas}</b> Nro Chk del archivo ya estaban registrados o venían repetidos, así que no se agregó nada.`);
+            } else {
+                if (resumen.duplicadasEnArchivo) html += nota('info', 'fa-copy', `<b>${resumen.duplicadasEnArchivo}</b> fila(s) descartadas por tener un Nro Chk repetido dentro del archivo.`);
+                if (resumen.duplicadasEnTabla)   html += nota('info', 'fa-copy', `<b>${resumen.duplicadasEnTabla}</b> fila(s) descartadas porque su Nro Chk ya estaba en la tabla.`);
+                if (resumen.sinChk)              html += nota('info', 'fa-hashtag', `<b>${resumen.sinChk}</b> fila(s) sin Nro Chk. Se importan siempre, porque no hay con qué compararlas.`);
+                if (resumen.fueraDelMes)         html += nota('info', 'fa-calendar-day', `<b>${resumen.fueraDelMes}</b> fila(s) con fecha de un mes distinto a ${formatearMes(mesActual)}.`);
+                if (!conAviso)                   html += nota('ok', 'fa-circle-check', 'Todos los datos se reconocieron correctamente. No hay nada que corregir.');
+            }
+
+            // ── Lista de correcciones ──
+            if (conAviso) {
+                html += `
+                    <div class="import-titulo-seccion"><i class="fas fa-wand-magic-sparkles"></i> Corregir antes de continuar</div>
+                    <div class="import-subtexto">
+                        Estos valores del archivo no coinciden con las listas del sistema. Elige el valor correcto y pulsa
+                        <b>Aplicar correcciones</b>; lo que dejes sin elegir se queda tal como vino del archivo.
+                    </div>`;
+
+                const opcionesPdv   = ALIAS_PDV.map(a => a.valor);
+                const opcionesAbrev = Object.keys(dbFuncionario);
+
+                html += _problemasImportacion.map((p, i) => {
+                    const nroFila = p.tr.querySelector('.row-number').textContent;
+                    const chip = p.chk
+                        ? `<span class="fix-chip fila">Fila ${nroFila} · Chk ${escaparHtml(p.chk)}</span>`
+                        : `<span class="fix-chip fila">Fila ${nroFila}</span>`;
+
+                    let etiqueta, detalle, control;
+                    if (p.tipo === 'pdv') {
+                        etiqueta = 'Punto de Venta';
+                        detalle  = `En el archivo dice <b>${escaparHtml(p.valor)}</b> y no existe en la lista del sistema.`;
+                        control  = `<select id="fixCtrl${i}" onchange="marcarCorreccion(${i})">
+                                        <option value="">Dejarlo tal como vino del archivo</option>
+                                        ${opcionesPdv.map(o => `<option value="${escaparHtml(o)}">${escaparHtml(o)}</option>`).join('')}
+                                    </select>`;
+                    } else if (p.tipo === 'abrev') {
+                        etiqueta = 'ABREV';
+                        detalle  = `En el archivo dice <b>${escaparHtml(p.valor)}</b>; sin equivalencia, la fila queda como "NO ENCONTRADO".`;
+                        control  = `<select id="fixCtrl${i}" onchange="marcarCorreccion(${i})">
+                                        <option value="">Dejarlo tal como vino del archivo</option>
+                                        ${opcionesAbrev.map(o => `<option value="${escaparHtml(o)}">${escaparHtml(o)}</option>`).join('')}
+                                    </select>`;
+                    } else {
+                        etiqueta = 'Fecha';
+                        detalle  = 'La fila no trae una fecha que se pueda leer.';
+                        control  = `<input type="date" id="fixCtrl${i}" onchange="marcarCorreccion(${i})">`;
+                    }
+
+                    return `
+                        <div class="fix-item" id="fixItem${i}">
+                            <div class="fix-item-top">
+                                ${chip}
+                                <span class="fix-chip">${etiqueta}</span>
+                                <span class="fix-valor">${detalle}</span>
+                                <span class="fix-chip listo" id="fixListo${i}" style="display:none;"><i class="fas fa-check"></i> Listo</span>
+                            </div>
+                            <div class="fix-item-control">
+                                <label>Corregir a:</label>
+                                ${control}
+                                <button class="fix-ver-fila" onclick="irAFilaImportada(${i})">
+                                    <i class="fas fa-location-crosshairs"></i> Ver fila
+                                </button>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+
+            document.getElementById('importCuerpo').innerHTML = html;
+            document.getElementById('importPie').innerHTML = conAviso
+                ? `<button class="btn btn-primary btn-sm" onclick="cerrarModalImportacion()">
+                       <i class="fas fa-clock-rotate-left"></i> Corregir después
+                   </button>
+                   <button class="btn btn-success btn-sm" onclick="aplicarCorreccionesImportacion()">
+                       <i class="fas fa-check"></i> Aplicar correcciones
+                   </button>`
+                : `<button class="btn btn-success btn-sm" onclick="cerrarModalImportacion()">
+                       <i class="fas fa-check"></i> Entendido
+                   </button>`;
+
+            document.getElementById('modalImportacion').classList.add('active');
+            actualizarBotonCorrecciones();
+        }
+
+        // Marca visualmente la tarjeta cuando el usuario elige un valor.
+        function marcarCorreccion(indice) {
+            const item  = document.getElementById(`fixItem${indice}`);
+            const ctrl  = document.getElementById(`fixCtrl${indice}`);
+            const listo = document.getElementById(`fixListo${indice}`);
+            if (!item || !ctrl) return;
+            const resuelto = ctrl.value !== '';
+            item.classList.toggle('resuelto', resuelto);
+            if (listo) listo.style.display = resuelto ? 'inline-block' : 'none';
+        }
+
+        function aplicarCorreccionesImportacion() {
+            let aplicadas = 0;
+
+            _problemasImportacion.forEach((p, i) => {
+                const ctrl = document.getElementById(`fixCtrl${i}`);
+                if (!ctrl || !ctrl.value || !p.tr.isConnected) return;
+
+                if (p.tipo === 'pdv' || p.tipo === 'abrev') {
+                    const celda = p.tipo === 'pdv' ? 5 : 4;
+                    const select = p.tr.cells[celda].querySelector('select');
+                    const anterior = select.value;
+                    asegurarOpcionSelect(select, ctrl.value);
+                    // Se elimina la opción "(fuera de lista)" que quedó sin uso.
+                    Array.from(select.options).forEach(o => {
+                        if (o.value === anterior && o.value !== ctrl.value && o.textContent.includes('(fuera de lista)')) o.remove();
+                    });
+                    if (p.tipo === 'abrev') actualizarCeldasLookup(select);
+                } else {
+                    p.tr.cells[17].querySelector('input').value = ctrl.value;
+                }
+                aplicadas++;
+            });
+
+            calcularTotales();
+            guardarDatos();
+
+            _problemasImportacion = []; // se limpia antes de cerrar, para ocultar el botón de pendientes
+            cerrarModalImportacion();
+
+            if (aplicadas) setEstado('saved', `✓ ${aplicadas} corrección(es) aplicada(s)`);
         }
 
         // ============================================================
