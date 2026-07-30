@@ -2199,7 +2199,10 @@
         // así "LOCANDA LOBBY" cae en "La Locanda" y no en "Lobby Bar".
         const ALIAS_PDV = [
             { valor: 'La Locanda',    claves: ['LOCANDA'] },
-            { valor: 'Rooms Service', claves: ['ROOM SERVICE', 'ROOMS SERVICE', 'ROOM SERV', 'RRSS'] },
+            { valor: 'Rooms Service', claves: [
+                'ROOM SERVICE', 'ROOMS SERVICE', 'ROOMSERVICE', 'ROOM SERV', 'RM SERVICE',
+                'R SERVICE', 'RRSS', 'SERVICIO A LA HABITACION', 'SERVICIO HABITACION'
+            ] },
             { valor: 'Banquets',      claves: ['BANQUET', 'BANQUETE', 'EVENTO'] },
             { valor: 'Le Cafe',       claves: ['LE CAFE', 'CAFE'] },
             { valor: 'Lobby Bar',     claves: ['LOBBY'] }
