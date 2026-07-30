@@ -813,6 +813,10 @@
                     <button class="btn btn-primary" onclick="exportarExcel()">
                         <i class="fas fa-file-excel"></i> Exportar Excel
                     </button>
+                    <button class="btn btn-primary" style="background: linear-gradient(135deg, #145a32, #1e8449); border-color: rgba(30,132,73,0.5);" onclick="document.getElementById('inputImportarExcel').click()" title="Agrega las filas del archivo al final de la tabla, sin borrar lo que ya está cargado">
+                        <i class="fas fa-file-import"></i> Importar Excel
+                    </button>
+                    <input type="file" id="inputImportarExcel" accept=".xlsx,.xlsm" style="display: none;" onchange="importarExcel(this)">
                     <button class="btn btn-primary" style="background: linear-gradient(135deg, #8b1a1a, #c0392b); border-color: rgba(192,57,43,0.5);" onclick="generarReporteCompleto()">
                         <i class="fas fa-chart-bar"></i> Generar Resumen (Sin IGV)
                     </button>
@@ -1371,6 +1375,24 @@
         }, 250);
 
 
+        // Asigna un valor a un <select>; si el valor no existe entre las opciones
+        // lo agrega como opción marcada, para no perder el dato (útil al importar
+        // desde Excel valores que no están en las listas del sistema).
+        function asegurarOpcionSelect(select, valor) {
+            if (!select) return;
+            const v = (valor == null ? '' : String(valor)).trim();
+            if (v === '') { select.value = ''; return; }
+
+            const existe = Array.from(select.options).some(o => o.value === v);
+            if (!existe) {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = `${v} (fuera de lista)`;
+                select.appendChild(opt);
+            }
+            select.value = v;
+        }
+
         function agregarFila(datosFila = null, recalcular = true) {
             const tbody = document.getElementById('tablaBody');
             const tr = document.createElement('tr');
@@ -1476,9 +1498,11 @@
 
             tbody.appendChild(tr);
 
-            // Establecer los valores de los selects
-            tr.cells[4].querySelector('select').value = abrevInicial;
-            tr.cells[5].querySelector('select').value = pdvInicial;
+            // Establecer los valores de los selects.
+            // Se usa asegurarOpcionSelect para que un valor que no está en la lista
+            // (por ejemplo, importado desde Excel) no se pierda al asignarlo.
+            asegurarOpcionSelect(tr.cells[4].querySelector('select'), abrevInicial);
+            asegurarOpcionSelect(tr.cells[5].querySelector('select'), pdvInicial);
 
             // Rellenar funcionario/micros/categoría y los cálculos SOLO de esta fila,
             // sin disparar el recálculo global (eso lo decide el llamador).
@@ -1926,6 +1950,253 @@
             }
         }
         
+        // ============================================================
+        // IMPORTAR DESDE .xlsx (AGREGA AL FINAL, NO BORRA NADA)
+        // ============================================================
+        // Mapeo de columnas del archivo de origen:
+        //   A -> Punto de Venta     B -> Nro Chk          C -> Fecha de Transac.
+        //   D -> ABREV              E -> Importe          G -> Licores
+        //   H -> Gaseosas/Agua      I -> Comestibles
+        // La columna F (Desglose) no se usa.
+        const COLUMNAS_IMPORT = {
+            pdv: 1, nroChk: 2, fecha: 3, abreviatura: 4, importe: 5,
+            licores: 7, gaseosas: 8, comestibles: 9
+        };
+
+        // Equivalencias para el Punto de Venta: el nombre del PDV en el sistema de
+        // origen no siempre coincide con la lista de la tabla. Se evalúan en orden,
+        // así "LOCANDA LOBBY" cae en "La Locanda" y no en "Lobby Bar".
+        const ALIAS_PDV = [
+            { valor: 'La Locanda',    claves: ['LOCANDA'] },
+            { valor: 'Rooms Service', claves: ['ROOM SERVICE', 'ROOMS SERVICE', 'ROOM SERV', 'RRSS'] },
+            { valor: 'Banquets',      claves: ['BANQUET', 'BANQUETE', 'EVENTO'] },
+            { valor: 'Le Cafe',       claves: ['LE CAFE', 'CAFE'] },
+            { valor: 'Lobby Bar',     claves: ['LOBBY'] }
+        ];
+
+        // Normaliza texto para comparar: sin tildes, en mayúsculas y sin signos.
+        function normalizarClave(valor) {
+            return String(valor == null ? '' : valor)
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase()
+                .replace(/[^A-Z0-9&]+/g, ' ')
+                .trim();
+        }
+
+        // Devuelve el valor de una celda de ExcelJS como dato plano
+        // (maneja fórmulas, texto enriquecido e hipervínculos).
+        function valorCeldaImport(cell) {
+            if (!cell) return null;
+            const v = cell.value;
+            if (v && typeof v === 'object' && !(v instanceof Date)) {
+                if (Array.isArray(v.richText)) return v.richText.map(t => t.text).join('');
+                if ('result' in v) return v.result;
+                if ('text' in v) return v.text;
+            }
+            return v;
+        }
+
+        // Convierte a número aceptando "70.00", "1,234.56", "S/ 70.00" o "70,50".
+        function parsearNumeroImport(valor) {
+            if (valor == null || valor === '') return '';
+            if (typeof valor === 'number') return isFinite(valor) ? valor : '';
+
+            let s = String(valor).replace(/[^\d.,\-]/g, '').trim();
+            if (s === '' || s === '-') return '';
+
+            const ultimaComa = s.lastIndexOf(',');
+            const ultimoPunto = s.lastIndexOf('.');
+            if (ultimaComa !== -1 && ultimoPunto !== -1) {
+                // El separador que aparece más a la derecha es el decimal.
+                s = ultimaComa > ultimoPunto
+                    ? s.replace(/\./g, '').replace(',', '.')
+                    : s.replace(/,/g, '');
+            } else if (ultimaComa !== -1) {
+                // Una sola coma con 1-2 decimales es separador decimal; si no, es de miles.
+                s = /,\d{1,2}$/.test(s) ? s.replace(',', '.') : s.replace(/,/g, '');
+            }
+
+            const n = parseFloat(s);
+            return isFinite(n) ? n : '';
+        }
+
+        function aFechaISO(anio, mes, dia) {
+            const p = (n) => String(n).padStart(2, '0');
+            return `${anio}-${p(mes)}-${p(dia)}`;
+        }
+
+        // Acepta fecha real de Excel, número de serie o texto dd/mm/aaaa (o aaaa-mm-dd).
+        function parsearFechaImport(valor) {
+            if (valor == null || valor === '') return '';
+
+            if (valor instanceof Date && !isNaN(valor)) {
+                // ExcelJS entrega las fechas en UTC: se leen con getUTC* para no
+                // desplazarlas un día en zonas horarias negativas (Perú, UTC-5).
+                return aFechaISO(valor.getUTCFullYear(), valor.getUTCMonth() + 1, valor.getUTCDate());
+            }
+
+            if (typeof valor === 'number' && isFinite(valor)) {
+                // Número de serie de Excel (época 1900, con el ajuste habitual).
+                const d = new Date(Date.UTC(1899, 11, 30) + Math.round(valor) * 86400000);
+                return aFechaISO(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
+            }
+
+            const texto = String(valor).trim();
+
+            const iso = texto.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+            if (iso) return aFechaISO(iso[1], +iso[2], +iso[3]);
+
+            const dmy = texto.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+            if (dmy) {
+                let anio = +dmy[3];
+                if (anio < 100) anio += 2000;
+                return aFechaISO(anio, +dmy[2], +dmy[1]);
+            }
+
+            return '';
+        }
+
+        // Busca la abreviatura en la lista oficial del sistema (comparación flexible).
+        function mapearAbrev(valor) {
+            const clave = normalizarClave(valor);
+            if (!clave) return null;
+            return Object.keys(dbFuncionario).find(op => normalizarClave(op) === clave) || null;
+        }
+
+        // Busca el Punto de Venta: primero coincidencia exacta, luego por palabra clave.
+        function mapearPdv(valor) {
+            const clave = normalizarClave(valor);
+            if (!clave) return null;
+
+            const exacto = ALIAS_PDV.find(a => normalizarClave(a.valor) === clave);
+            if (exacto) return exacto.valor;
+
+            const alias = ALIAS_PDV.find(a => a.claves.some(c => clave.includes(c)));
+            return alias ? alias.valor : null;
+        }
+
+        // Detecta la fila de encabezados para saltarla (puede repetirse en el archivo).
+        function esFilaEncabezado(row) {
+            const texto = [1, 2, 3, 4, 5]
+                .map(c => normalizarClave(valorCeldaImport(row.getCell(c))))
+                .join(' ');
+            return texto.includes('PUNTO DE VENTA')
+                || (texto.includes('FECHA') && texto.includes('IMPORTE'))
+                || (texto.includes('CHECK') && texto.includes('FECHA'));
+        }
+
+        async function importarExcel(input) {
+            const archivo = input.files && input.files[0];
+            if (!archivo) return;
+            input.value = ''; // permite volver a elegir el mismo archivo
+
+            if (typeof ExcelJS === 'undefined') {
+                alert('No se pudo cargar la librería de Excel. Revisa tu conexión a internet y recarga la página.');
+                return;
+            }
+
+            setEstado('syncing', '⟳ Importando Excel...');
+
+            try {
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(await archivo.arrayBuffer());
+
+                const hoja = workbook.worksheets[0];
+                if (!hoja) {
+                    setEstado('saved');
+                    alert('El archivo no tiene ninguna hoja con datos.');
+                    return;
+                }
+
+                const nuevasFilas = [];
+                let omitidas = 0;
+
+                hoja.eachRow({ includeEmpty: false }, (row) => {
+                    if (esFilaEncabezado(row)) return;
+
+                    const crudo = {};
+                    Object.keys(COLUMNAS_IMPORT).forEach(campo => {
+                        crudo[campo] = valorCeldaImport(row.getCell(COLUMNAS_IMPORT[campo]));
+                    });
+
+                    const pdvTexto   = String(crudo.pdv == null ? '' : crudo.pdv).trim();
+                    const abrevTexto = String(crudo.abreviatura == null ? '' : crudo.abreviatura).trim();
+                    const nroChk     = String(crudo.nroChk == null ? '' : crudo.nroChk).trim();
+                    const importe    = parsearNumeroImport(crudo.importe);
+                    const fecha      = parsearFechaImport(crudo.fecha);
+
+                    // Fila sin ningún dato aprovechable: se ignora.
+                    if (!pdvTexto && !abrevTexto && !nroChk && importe === '' && !fecha) {
+                        omitidas++;
+                        return;
+                    }
+
+                    const pdvMapeado   = mapearPdv(pdvTexto);
+                    const abrevMapeada = mapearAbrev(abrevTexto);
+
+                    nuevasFilas.push({
+                        datos: {
+                            // Si no hay equivalencia se conserva el texto original del archivo:
+                            // queda visible como "(fuera de lista)" para corregirlo a mano.
+                            abreviatura:    abrevMapeada || abrevTexto,
+                            pdv:            pdvMapeado || pdvTexto,
+                            nroChk:         nroChk.toUpperCase(),
+                            importe:        importe,
+                            comestibles:    parsearNumeroImport(crudo.comestibles),
+                            teCafe:         '',
+                            vinos:          '',
+                            gaseosas:       parsearNumeroImport(crudo.gaseosas),
+                            cerveza:        '',
+                            licores:        parsearNumeroImport(crudo.licores),
+                            fecha:          fecha,
+                            invitadoMotivo: '',
+                            firmante:       '',
+                            observaciones:  ''
+                        },
+                        pdvSinMapear:   !!pdvTexto && !pdvMapeado,
+                        abrevSinMapear: !!abrevTexto && !abrevMapeada,
+                        fueraDelMes:    !!fecha && fecha.slice(0, 7) !== mesActual,
+                        sinFecha:       !fecha
+                    });
+                });
+
+                if (nuevasFilas.length === 0) {
+                    setEstado('saved');
+                    alert('No se encontraron filas con datos para importar.\n\nRevisa que la información empiece en la columna A y que la primera hoja del archivo sea la correcta.');
+                    return;
+                }
+
+                // Se agregan AL FINAL, después de las filas que ya existen.
+                // recalcular=false: un solo recálculo global al terminar (evita O(n²)).
+                nuevasFilas.forEach(f => agregarFila(f.datos, false));
+
+                calcularTotales();
+                guardarDatos();
+
+                const avisos = [];
+                const contar = (prop) => nuevasFilas.filter(f => f[prop]).length;
+                const pdvSinMapear   = contar('pdvSinMapear');
+                const abrevSinMapear = contar('abrevSinMapear');
+                const fueraDelMes    = contar('fueraDelMes');
+                const sinFecha       = contar('sinFecha');
+
+                if (pdvSinMapear)   avisos.push(`• ${pdvSinMapear} fila(s) con Punto de Venta fuera de la lista del sistema.`);
+                if (abrevSinMapear) avisos.push(`• ${abrevSinMapear} fila(s) con ABREV fuera de la lista (aparecen como "NO ENCONTRADO").`);
+                if (sinFecha)       avisos.push(`• ${sinFecha} fila(s) sin fecha válida.`);
+                if (fueraDelMes)    avisos.push(`• ${fueraDelMes} fila(s) con fecha de otro mes distinto a ${formatearMes(mesActual)}.`);
+                if (omitidas)       avisos.push(`• ${omitidas} fila(s) vacías omitidas.`);
+
+                alert(
+                    `Se importaron ${nuevasFilas.length} fila(s) al final de la tabla.\n` +
+                    (avisos.length ? `\nRevisar:\n${avisos.join('\n')}` : '\nTodos los datos se mapearon correctamente.')
+                );
+            } catch (error) {
+                console.error('Error al importar Excel:', error);
+                setEstado('error');
+                alert(`No se pudo leer el archivo.\n\nDetalle: ${error.message}\n\nAsegúrate de que sea un archivo .xlsx o .xlsm válido.`);
+            }
+        }
+
         // ============================================================
         // EXPORTAR A .xlsx PROFESIONAL CON ExcelJS
         // ============================================================
