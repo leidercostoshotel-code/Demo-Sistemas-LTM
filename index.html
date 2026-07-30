@@ -813,7 +813,7 @@
                     <button class="btn btn-primary" onclick="exportarExcel()">
                         <i class="fas fa-file-excel"></i> Exportar Excel
                     </button>
-                    <button class="btn btn-primary" style="background: linear-gradient(135deg, #145a32, #1e8449); border-color: rgba(30,132,73,0.5);" onclick="document.getElementById('inputImportarExcel').click()" title="Agrega las filas del archivo al final de la tabla, sin borrar lo que ya está cargado">
+                    <button class="btn btn-primary" style="background: linear-gradient(135deg, #145a32, #1e8449); border-color: rgba(30,132,73,0.5);" onclick="document.getElementById('inputImportarExcel').click()" title="Agrega las filas del archivo al final de la tabla, sin borrar lo que ya está cargado y sin repetir Nro Chk">
                         <i class="fas fa-file-import"></i> Importar Excel
                     </button>
                     <input type="file" id="inputImportarExcel" accept=".xlsx,.xlsm" style="display: none;" onchange="importarExcel(this)">
@@ -1955,12 +1955,11 @@
         // ============================================================
         // Mapeo de columnas del archivo de origen:
         //   A -> Punto de Venta     B -> Nro Chk          C -> Fecha de Transac.
-        //   D -> ABREV              E -> Importe          G -> Licores
-        //   H -> Gaseosas/Agua      I -> Comestibles
-        // La columna F (Desglose) no se usa.
+        //   D -> ABREV              E -> Importe          F -> Firmante
+        //   G -> Licores            H -> Gaseosas/Agua    I -> Comestibles
         const COLUMNAS_IMPORT = {
             pdv: 1, nroChk: 2, fecha: 3, abreviatura: 4, importe: 5,
-            licores: 7, gaseosas: 8, comestibles: 9
+            firmante: 6, licores: 7, gaseosas: 8, comestibles: 9
         };
 
         // Equivalencias para el Punto de Venta: el nombre del PDV en el sistema de
@@ -2110,6 +2109,16 @@
 
                 const nuevasFilas = [];
                 let omitidas = 0;
+                let duplicadasEnArchivo = 0;
+                let duplicadasEnTabla = 0;
+
+                // Nro Chk que ya existen en la tabla: no se vuelven a importar.
+                const chkExistentes = new Set();
+                document.querySelectorAll('#tablaBody tr').forEach(tr => {
+                    const v = tr.cells[6].querySelector('input').value.trim().toUpperCase();
+                    if (v) chkExistentes.add(v);
+                });
+                const chkDelArchivo = new Set();
 
                 hoja.eachRow({ includeEmpty: false }, (row) => {
                     if (esFilaEncabezado(row)) return;
@@ -2121,7 +2130,8 @@
 
                     const pdvTexto   = String(crudo.pdv == null ? '' : crudo.pdv).trim();
                     const abrevTexto = String(crudo.abreviatura == null ? '' : crudo.abreviatura).trim();
-                    const nroChk     = String(crudo.nroChk == null ? '' : crudo.nroChk).trim();
+                    const nroChk     = String(crudo.nroChk == null ? '' : crudo.nroChk).trim().toUpperCase();
+                    const firmante   = String(crudo.firmante == null ? '' : crudo.firmante).trim().toUpperCase();
                     const importe    = parsearNumeroImport(crudo.importe);
                     const fecha      = parsearFechaImport(crudo.fecha);
 
@@ -2129,6 +2139,14 @@
                     if (!pdvTexto && !abrevTexto && !nroChk && importe === '' && !fecha) {
                         omitidas++;
                         return;
+                    }
+
+                    // Un mismo Nro Chk se importa una sola vez: se descartan las
+                    // repeticiones dentro del archivo y las que ya están en la tabla.
+                    if (nroChk) {
+                        if (chkDelArchivo.has(nroChk)) { duplicadasEnArchivo++; return; }
+                        if (chkExistentes.has(nroChk)) { duplicadasEnTabla++; return; }
+                        chkDelArchivo.add(nroChk);
                     }
 
                     const pdvMapeado   = mapearPdv(pdvTexto);
@@ -2140,7 +2158,7 @@
                             // queda visible como "(fuera de lista)" para corregirlo a mano.
                             abreviatura:    abrevMapeada || abrevTexto,
                             pdv:            pdvMapeado || pdvTexto,
-                            nroChk:         nroChk.toUpperCase(),
+                            nroChk:         nroChk,
                             importe:        importe,
                             comestibles:    parsearNumeroImport(crudo.comestibles),
                             teCafe:         '',
@@ -2150,9 +2168,10 @@
                             licores:        parsearNumeroImport(crudo.licores),
                             fecha:          fecha,
                             invitadoMotivo: '',
-                            firmante:       '',
+                            firmante:       firmante,
                             observaciones:  ''
                         },
+                        sinChk:         !nroChk,
                         pdvSinMapear:   !!pdvTexto && !pdvMapeado,
                         abrevSinMapear: !!abrevTexto && !abrevMapeada,
                         fueraDelMes:    !!fecha && fecha.slice(0, 7) !== mesActual,
@@ -2162,7 +2181,10 @@
 
                 if (nuevasFilas.length === 0) {
                     setEstado('saved');
-                    alert('No se encontraron filas con datos para importar.\n\nRevisa que la información empiece en la columna A y que la primera hoja del archivo sea la correcta.');
+                    const totalDuplicadas = duplicadasEnArchivo + duplicadasEnTabla;
+                    alert(totalDuplicadas
+                        ? `No se importó ninguna fila: los ${totalDuplicadas} Nro Chk del archivo ya estaban registrados o venían repetidos.`
+                        : 'No se encontraron filas con datos para importar.\n\nRevisa que la información empiece en la columna A y que la primera hoja del archivo sea la correcta.');
                     return;
                 }
 
@@ -2179,7 +2201,11 @@
                 const abrevSinMapear = contar('abrevSinMapear');
                 const fueraDelMes    = contar('fueraDelMes');
                 const sinFecha       = contar('sinFecha');
+                const sinChk         = contar('sinChk');
 
+                if (duplicadasEnArchivo) avisos.push(`• ${duplicadasEnArchivo} fila(s) descartadas por Nro Chk repetido dentro del archivo.`);
+                if (duplicadasEnTabla)   avisos.push(`• ${duplicadasEnTabla} fila(s) descartadas porque su Nro Chk ya estaba en la tabla.`);
+                if (sinChk)              avisos.push(`• ${sinChk} fila(s) sin Nro Chk: se importan siempre, porque no hay con qué compararlas.`);
                 if (pdvSinMapear)   avisos.push(`• ${pdvSinMapear} fila(s) con Punto de Venta fuera de la lista del sistema.`);
                 if (abrevSinMapear) avisos.push(`• ${abrevSinMapear} fila(s) con ABREV fuera de la lista (aparecen como "NO ENCONTRADO").`);
                 if (sinFecha)       avisos.push(`• ${sinFecha} fila(s) sin fecha válida.`);
